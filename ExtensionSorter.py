@@ -1,5 +1,6 @@
 import os
-from move import send_file, user_continues
+from move import send_file, user_continues, pretty_print_substring, return_pretty_print_string
+from colorama import Fore
 
 
 def main():
@@ -49,13 +50,15 @@ def main():
 
     for file in os.listdir(sourceFolder):
         if not os.path.isdir(os.path.join(sourceFolder, file)):
-            _, ext = os.path.splitext(file)
+            name, ext = os.path.splitext(file)
 
             if ext in extensions:
                 files_to_be_sent.append(
                     {
                         "src": os.path.join(sourceFolder, file),
-                        "dst": os.path.join(sourceFolder, extensions[ext], file)
+                        "dst": os.path.join(sourceFolder, extensions[ext], file),
+                        "ext": ext,
+                        "name": name
                     }
                 )
 
@@ -63,12 +66,23 @@ def main():
         print("No files were found")
     else:
         for file in files_to_be_sent:
-            print(f'\u2794  From:   {file["src"]}')
-            print(f'\u2794    To:   {file["dst"]}\n')
+            print_file(file, extensions)
 
         if user_continues():
             for file in files_to_be_sent:
                 send_file(file["src"], file["dst"])
+
+
+def print_file(file: dict, extensions: dict):
+    src_string = return_pretty_print_string(file["src"], file["name"], start="", color=Fore.CYAN)
+    pretty_print_substring(src_string, file["ext"], start="\u2794  From:  ", color=Fore.YELLOW)
+
+    dst_string = return_pretty_print_string(file["dst"], file["name"], start="", color=Fore.CYAN)
+
+    ext_path = extensions[file["ext"]].split("\\")[-1]
+    dst_string = return_pretty_print_string(dst_string, file["ext"], start="", color=Fore.YELLOW)
+
+    pretty_print_substring(dst_string, ext_path, start="\u2794    To:  ", end='\n', color=Fore.YELLOW)
 
 
 if __name__ == "__main__":

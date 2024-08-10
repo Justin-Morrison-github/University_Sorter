@@ -65,6 +65,17 @@ def pretty_print_substring(str: str, substr: str, start="\u2794  ", end="", colo
     print(string)
 
 
+def return_pretty_print_string(str: str, substr: str, start="\u2794  ", end="", color=Fore.YELLOW):
+    str_len = len(str)
+    substr_len = len(substr)
+
+    index = str.lower().find(substr.lower())
+
+    string = start + str[0: index] + color + str[index: index + substr_len] + Fore.RESET + str[index +
+                                                                                               substr_len: str_len] + end
+    return string
+
+
 def pretty_path(file: str, basepath: str):
 
     colors = [Fore.BLUE, Fore.GREEN, Fore.YELLOW, Fore.RED, Fore.MAGENTA, Fore.BLACK]

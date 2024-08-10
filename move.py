@@ -107,21 +107,31 @@ def replace_previous_print(string):
     print(string)
 
 
-def print_hierarchy(src_folder_path: str, depth=0):
+def print_hierarchy(
+        src_folder_path: str, depth=0, arrow_color=Fore.BLACK, count_color=Fore.BLACK, file_color=Fore.CYAN,
+        size_color=Fore.GREEN, show_arrow=True, show_count=True, indent="\t", deci_places=2):
     depth += 1
     count = 0
     file_list = os.listdir(src_folder_path)
     for file in file_list:
         path = os.path.join(src_folder_path, file)
         if os.path.isdir(path):
-            count += 1
-            size = get_folder_size(path)
-            print(Fore.BLUE + "\t" * (depth-1), end=" ")
-            print(Fore.WHITE + f"{ARROW} {count:03d}", end=" ")
-            print(Fore.CYAN + f'{file}', end=" ")
-            print(Fore.GREEN + f"{size: .2f}" + Fore.RESET),
+            print(f"{indent * (depth-1)}", end=" ")
 
-            print_hierarchy(path, depth)
+            if (show_arrow):
+                print(f"{arrow_color}{ARROW}{Fore.RESET}", end=" ")
+
+            count += 1
+            if (show_count):
+                print(f"{count_color}{count:03d}{Fore.RESET}", end=" ")
+
+            print(f'{file_color}{file}{Fore.RESET}', end="")
+
+            size = get_folder_size(path)
+            print(f"{size_color}{size: .{deci_places}f}{Fore.RESET}"),
+
+            print_hierarchy(path, depth, arrow_color, count_color, file_color,
+                            size_color, show_arrow, show_count, indent, deci_places)
 
 
 def get_folder_size(folder):

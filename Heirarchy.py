@@ -14,7 +14,7 @@ def main():
         folder = filedialog.askdirectory(initialdir=init_dir)
         print(Fore.YELLOW + f"\n{os.path.basename(folder)}" + Fore.RESET, get_folder_size(folder))
 
-        print_hierarchy(folder)
+        print_hierarchy(folder, arrow_color=Fore.WHITE, count_color=Fore.WHITE)
 
     else:  # Folder given
         print("Error")

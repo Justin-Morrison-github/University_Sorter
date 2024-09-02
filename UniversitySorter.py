@@ -36,7 +36,7 @@ def main():
 
         if user_continues():
             for file in files_to_be_sent:
-                send_file(file["src"], file["dst"])
+                send_file(file["src"], file["dst"], send_enabled=True)
 
 
 def get_class_paths(folder_path):

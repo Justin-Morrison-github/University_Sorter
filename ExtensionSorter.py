@@ -1,6 +1,6 @@
-import os
 from move import send_file, user_continues, pretty_print_substring, return_pretty_print_string
 from colorama import Fore
+from pathlib import Path
 
 
 def main():
@@ -45,22 +45,17 @@ def main():
         '.pptx': 'TEXT\\POWERPOINT'
     }
 
-    sourceFolder = "C:\\Users\\morri\\Downloads"
+    srcFolder = Path("C:\\Users\\morri\\Downloads")
     files_to_be_sent = []
 
-    for file in os.listdir(sourceFolder):
-        if not os.path.isdir(os.path.join(sourceFolder, file)):
-            name, ext = os.path.splitext(file)
-
-            if ext in extensions:
-                files_to_be_sent.append(
-                    {
-                        "src": os.path.join(sourceFolder, file),
-                        "dst": os.path.join(sourceFolder, extensions[ext], file),
-                        "ext": ext,
-                        "name": name
-                    }
-                )
+    for file in srcFolder.iterdir():
+        if file.suffix in extensions:
+            files_to_be_sent.append(
+                {
+                    "src":  srcFolder / file,
+                    "dst": srcFolder / Path(f"{(extensions[file.suffix])}/{file.name}"),
+                }
+            )
 
     if len(files_to_be_sent) == 0:
         print("No files were found")
@@ -70,17 +65,17 @@ def main():
 
         if user_continues():
             for file in files_to_be_sent:
-                send_file(file["src"], file["dst"])
+                send_file(file["src"], file["dst"], send_enabled=True)
 
 
-def print_file(file: dict, extensions: dict):
-    src_string = return_pretty_print_string(file["src"], file["name"], start="", color=Fore.CYAN)
-    pretty_print_substring(src_string, file["ext"], start="\u2794  From:  ", color=Fore.YELLOW)
+def print_file(file: dict[str, Path], extensions: dict[str, str]):
+    src_string = return_pretty_print_string(str(file["src"]), str(file["src"].name), start="", color=Fore.CYAN)
+    pretty_print_substring(src_string, file["src"].suffix, start="\u2794  From:  ", color=Fore.YELLOW)
 
-    dst_string = return_pretty_print_string(file["dst"], file["name"], start="", color=Fore.CYAN)
+    dst_string = return_pretty_print_string(str(file["dst"]), str(file["dst"].name), start="", color=Fore.CYAN)
 
-    ext_path = extensions[file["ext"]].split("\\")[-1]
-    dst_string = return_pretty_print_string(dst_string, file["ext"], start="", color=Fore.YELLOW)
+    ext_path = extensions[file["src"].suffix].split("\\")[-1]
+    dst_string = return_pretty_print_string(dst_string, file["src"].suffix, start="", color=Fore.YELLOW)
 
     pretty_print_substring(dst_string, ext_path, start="\u2794    To:  ", end='\n', color=Fore.YELLOW)
 

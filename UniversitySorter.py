@@ -51,11 +51,27 @@ def get_class_paths(folder_path):
 def traverse_folder(src_folder_path: str, class_folders: dict) -> list[dict]:
     files_to_be_sent = []
 
-    for root, _, files in os.walk(src_folder_path):
+    for root, dirs, files in os.walk(src_folder_path):
+        for dir in dirs:
+            dirname, _ = os.path.splitext(dir)
+            # Only works if folders have specific filenames, example: ELEC 2501 or ELEC2501
+            classname = dirname[:9].replace(" ", "").upper()
+
+            if classname in class_folders:
+                files_to_be_sent.append(
+                    {
+                        "src": os.path.join(root, dir),
+                        "dst": os.path.join(class_folders[classname], dir)
+                    }
+                )
+
         for file in files:
             filename, _ = os.path.splitext(file)
-            # Only works if files have specific filenames, example: ELEC 2501.txt
-            classname = filename[:4] + filename[5:9]
+
+            if 'comp' in filename:
+                pass
+            # Only works if files have specific filenames, example: ELEC 2501.txt or ELEC2501.txt
+            classname = filename[:9].replace(" ", "").replace("-", "").replace("_", "").upper()
 
             if classname in class_folders:
                 files_to_be_sent.append(

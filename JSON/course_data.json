@@ -1,0 +1,49 @@
+{
+    "ELEC2501": [
+        "ASSIGNMENT",
+        "INFO",
+        "LAB",
+        "LECTURE",
+        "REVIEW",
+        "PASS",
+        "TEXTBOOK",
+        "TUTORIAl"
+    ],
+    "MATH1005": [
+        "INFO",
+        "LECTURE",
+        "REVIEW",
+        "PRACTICE",
+        "TEXTBOOK",
+        "TUTORIAl"
+    ],
+    "SYSC2310": [
+        "ASSIGNMENT",
+        "INFO",
+        "LAB",
+        "LECTURE",
+        "REVIEW",
+        "TEXTBOOK",
+        "WOOCLAP"
+    ],
+    "COMP1805": [
+        "ASSIGNMENT",
+        "INFO",
+        "LECTURE",
+        "REVIEW",
+        "PASS",
+        "PRACTICE",
+        "TEXTBOOK",
+        "TUTORIAl"
+    ],
+    "SYSC2006": [
+        "ASSIGNMENT",
+        "INFO",
+        "LAB",
+        "LECTURE",
+        "REVIEW",
+        "PASS",
+        "TEXTBOOK",
+        "WOOCLAP"
+    ]
+}

@@ -2,6 +2,7 @@ from pathlib import Path
 from enum import StrEnum
 from move import user_continues, ARROW
 from colorama import Fore
+import json
 
 
 class Folders(StrEnum):
@@ -61,24 +62,24 @@ class Packet():
         self.dst = new_dst
 
 
-class Course():
-    list = {Folders.ELEC2501: [Folders.ASSIGNMENT, Folders.INFO, Folders.LAB, Folders.LECTURE, Folders.REVIEW, Folders.PASS, Folders.TEXTBOOK, Folders.TUTORIAl],
-            Folders.MATH1005: [Folders.INFO, Folders.LECTURE, Folders.REVIEW, Folders.PRACTICE, Folders.TEXTBOOK, Folders.TUTORIAl],
-            Folders.SYSC2310: [Folders.ASSIGNMENT, Folders.INFO, Folders.LAB, Folders.LECTURE, Folders.REVIEW, Folders.TEXTBOOK, Folders.WOOCLAP],
-            Folders.COMP1805: [Folders.ASSIGNMENT, Folders.INFO, Folders.LECTURE, Folders.REVIEW, Folders.PASS, Folders.PRACTICE, Folders.TEXTBOOK, Folders.TUTORIAl],
-            Folders.SYSC2006: [Folders.ASSIGNMENT, Folders.INFO, Folders.LAB, Folders.LECTURE, Folders.REVIEW, Folders.PASS, Folders.TEXTBOOK, Folders.WOOCLAP]
-            }
-
-
 def main():
-    basepath = "C:\\Users\\morri\\OneDrive\\University\\02_Second-Year Classes\\FALL"
-    root = Path(basepath)
+    root = Path("C:\\Users\\morri\\OneDrive\\University\\02_Second-Year Classes\\FALL")
     if not root.exists():
         print('Error')
         exit()
 
-    setup_folders(root, Course.list)
-    packets_to_be_sent = make_packets(root, Course.list)
+    file = Path("JSON/course_data.json")
+
+    with open(file, 'r') as json_file:
+        course_data: dict = json.load(json_file)
+
+    course_dict = {
+        Folders[folder]: [Folders[subfolder] for subfolder in subfolders]
+        for folder, subfolders in course_data.items()
+    }
+
+    setup_folders(root, course_dict)
+    packets_to_be_sent = make_packets(root, course_dict)
     if len(packets_to_be_sent) == 0:
         print("No files found...")
     else:

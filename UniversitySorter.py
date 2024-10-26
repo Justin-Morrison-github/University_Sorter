@@ -1,6 +1,7 @@
 from pathlib import Path
 from move import user_continues
 from colorama import Fore
+import json
 
 
 def main():
@@ -9,16 +10,10 @@ def main():
         print(f"Error {basepath} does not exist")
         return
 
-    university = {
-        "01_First-Year Classes": {
-            "FALL": ["MATH 1004", "CHEM 1101", "ECOR 1048", "ECOR 1055", "ECOR 1057", "ECOR 1046", "ECOR 1045", "PHYS 1003", "ECOR 1047"],
-            "WINTER": ["ECOR 1043", "ECOR 1042", "PHYS 1004", "ECOR 1056", "GEOG 1020", "MATH 1104", "ECOR 1044", "ECOR 1041"],
-        },
-        "02_Second-Year Classes": {
-            "FALL": ["ELEC 2501", "COOP 1000", "MATH 1005", "SYSC 2310", "COMP 1805", "SYSC 2006"],
-            "WINTER": ["SYSC 2100", "CCDP 2100", "SYSC 2320", "COMP 2804", "SYSC 2004"],
-        }
-    }
+    file = Path("JSON/courses.json")
+
+    with open(file, 'r') as json_file:
+        university: dict = json.load(json_file)
 
     classes = {}
     for year, semesters in university.items():

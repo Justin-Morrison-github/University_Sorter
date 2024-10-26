@@ -1,30 +1,33 @@
-import os
-from move import send_file, user_continues
+from pathlib import Path
+from move import user_continues
+from colorama import Fore
 
 
 def main():
-    basepath = "C:\\Users\\morri\\OneDrive\\University"
+    basepath = Path("C:\\Users\\morri\\OneDrive\\University")
+    if not basepath.exists():
+        print(f"Error {basepath} does not exist")
+        return
 
     university = {
         "01_First-Year Classes": {
-            "FALL": ["MATH1004", "CHEM1101", "ECOR1048", "ECOR1055", "ECOR1057", "ECOR1046", "ECOR1045", "PHYS1003", "ECOR1047"],
-            "WINTER": ["ECOR1043", "ECOR1042", "PHYS1004", "ECOR1056", "GEOG1020", "MATH1104", "ECOR1044", "ECOR1041"],
+            "FALL": ["MATH 1004", "CHEM 1101", "ECOR 1048", "ECOR 1055", "ECOR 1057", "ECOR 1046", "ECOR 1045", "PHYS 1003", "ECOR 1047"],
+            "WINTER": ["ECOR 1043", "ECOR 1042", "PHYS 1004", "ECOR 1056", "GEOG 1020", "MATH 1104", "ECOR 1044", "ECOR 1041"],
         },
         "02_Second-Year Classes": {
-            "FALL": ["ELEC2501", "COOP1000", "MATH1005", "SYSC2310", "COMP1805", "SYSC2006"],
-            "WINTER": ["SYSC2100", "CCDP2100", "SYSC2320", "COMP2804", "SYSC2004"],
+            "FALL": ["ELEC 2501", "COOP 1000", "MATH 1005", "SYSC 2310", "COMP 1805", "SYSC 2006"],
+            "WINTER": ["SYSC 2100", "CCDP 2100", "SYSC 2320", "COMP 2804", "SYSC 2004"],
         }
     }
 
     classes = {}
-
     for year, semesters in university.items():
         for semester, class_list in semesters.items():
-            folder_path = os.path.join(basepath, year, semester)
-            class_paths = get_class_paths(folder_path)
+            folder_path: Path = basepath / year / semester
+            class_paths: Path = get_class_paths(folder_path)
             classes.update(dict(zip(class_list, class_paths)))
 
-    src_folder_path = "C:\\Users\\morri\\Downloads"
+    src_folder_path: Path = Path("C:\\Users\\morri\\Downloads")
     files_to_be_sent = traverse_folder(src_folder_path, classes)
 
     if len(files_to_be_sent) == 0:
@@ -35,53 +38,72 @@ def main():
             print(f'\u2794    To:   {file["dst"]}\n')
 
         if user_continues():
-            for file in files_to_be_sent:
-                send_file(file["src"], file["dst"], send_enabled=True)
+            send_files(files_to_be_sent, send_enabled=True)
 
 
-def get_class_paths(folder_path):
+def send_files(files_to_be_sent: list, send_enabled=False):
+    for file in files_to_be_sent:
+        send_file(file["src"], file["dst"], send_enabled=send_enabled)
+
+
+def get_class_paths(folder_path: Path):
     classes = []
-    for folder in os.listdir(folder_path):
-        if (os.path.isdir(os.path.join(folder_path, folder))):
-            classes.append(os.path.join(folder_path, folder))
+    for folder in folder_path.iterdir():
+        path: Path = folder_path / folder
+        if path.is_dir():
+            classes.append(path)
 
     return classes
 
 
-def traverse_folder(src_folder_path: str, class_folders: dict) -> list[dict]:
+def traverse_folder(src_folder_path: Path, class_folders: dict) -> list[dict]:
     files_to_be_sent = []
 
-    for root, dirs, files in os.walk(src_folder_path):
-        for dir in dirs:
-            dirname, _ = os.path.splitext(dir)
-            # Only works if folders have specific filenames, example: ELEC 2501 or ELEC2501
-            classname = dirname[:9].replace(" ", "").upper()
+    for file in src_folder_path.iterdir():
+        file_name_1 = file.name[:9].replace("-", " ").replace("_", " ").upper().strip()
+        file_name_2 = file.name[:4] + " " + file.name[4:8]
 
-            if classname in class_folders:
-                files_to_be_sent.append(
-                    {
-                        "src": os.path.join(root, dir),
-                        "dst": os.path.join(class_folders[classname], dir)
-                    }
-                )
-
-        for file in files:
-            filename, _ = os.path.splitext(file)
-
-            if 'comp' in filename:
-                pass
-            # Only works if files have specific filenames, example: ELEC 2501.txt or ELEC2501.txt
-            classname = filename[:9].replace(" ", "").replace("-", "").replace("_", "").upper()
-
-            if classname in class_folders:
-                files_to_be_sent.append(
-                    {
-                        "src": os.path.join(root, file),
-                        "dst": os.path.join(class_folders[classname], file)
-                    }
-                )
+        if file_name_1 in class_folders:
+            files_to_be_sent.append({
+                                    "src": file,
+                                    "dst": class_folders[file_name_1] / file.name,
+                                    })
+        elif file_name_2 in class_folders:
+            files_to_be_sent.append({
+                                    "src": file,
+                                    "dst": class_folders[file_name_2] / file.name,
+                                    })
+        elif file.is_dir():
+            files_to_be_sent += traverse_folder(file, class_folders)
 
     return files_to_be_sent
+
+
+def send_file(src: Path, dst: Path, send_enabled=False) -> None:
+    """
+    Sends a file from src to dst. Prints out certain results
+    """
+
+    try:
+        if dst.exists():
+            print(Fore.GREEN + f'\u2705 From:  {src}')
+            print(Fore.RED + f'\u274C   To:  {dst}')
+            print(Fore.YELLOW + f"WARNING: File Already Exists")
+        else:
+            if send_enabled:
+                src.rename(dst)
+            print(Fore.GREEN + f'\u2705 From:  {src}')
+            print(Fore.GREEN + f'\u2705   To:  {dst}', end="")
+
+    except FileNotFoundError as e:
+        print(Fore.YELLOW + f'\u274C From:  {src}')
+        print(Fore.YELLOW + f'\u274C   To:  {dst}')
+        print(Fore.RED + f"ERROR: File Not Found {e}")
+
+    except Exception as error:
+        print(error)
+
+    print(Fore.RESET + "\n")
 
 
 if __name__ == "__main__":

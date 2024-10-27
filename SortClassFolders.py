@@ -17,11 +17,43 @@ class Folders(StrEnum):
     TUTORIAl = "Tutorial"
     WOOCLAP = "Wooclap"
 
+    # 1st year FALL
+    MATH1004 = "Calculus"
+    CHEM1101 = "Chemistry"
+    ECOR1048 = "Dynamics"
+    ECOR1055 = "Eng Disciplines"
+    ECOR1057 = "Eng Profession"
+    ECOR1046 = "Mechanics"
+    ECOR1045 = "Statics"
+    PHYS1003 = "Thermodynamics"
+    ECOR1047 = "Visual Communication"
+
+    # 1st year WINTER
+    ECOR1043 = "Circuits"
+    ECOR1042 = "Data Management"
+    PHYS1004 = "Electromagnetism"
+    ECOR1056 = "Eng Disciplines 2"
+    GEOG1020 = "Geography"
+    MATH1104 = "Linear Algebra"
+    ECOR1044 = "Mechatronics"
+    ECOR1041 = "Programming"
+
+    # 2nd year FALL
     ELEC2501 = "Circuits and Signals"
     MATH1005 = "Differential Equations"
     SYSC2310 = "Digital Systems"
     COMP1805 = "Discrete Structures I"
     SYSC2006 = "Imperative Programming"
+
+    # 2nd year WINTER
+    SYSC2100 = "Algorithms and Data Structures"
+    CCDP2100 = "CCDP"
+    SYSC2320 = "Computer Architecture"
+    COMP2804 = "Discrete Structures II"
+    SYSC2004 = "Object Oriented Software Development"
+
+    def __repr__(self):
+        return self.value
 
 
 class Packet():
@@ -63,7 +95,7 @@ class Packet():
 
 
 def main():
-    root = Path("C:\\Users\\morri\\OneDrive\\University\\02_Second-Year Classes\\FALL")
+    root = Path("C:\\Users\\morri\\OneDrive\\University")
     if not root.exists():
         print('Error')
         exit()
@@ -73,13 +105,22 @@ def main():
     with open(file, 'r') as json_file:
         course_data: dict = json.load(json_file)
 
-    course_dict = {
-        Folders[folder]: [Folders[subfolder] for subfolder in subfolders]
-        for folder, subfolders in course_data.items()
-    }
+    course_dict = {}
 
-    setup_folders(root, course_dict)
+    for year, semesters in course_data.items():
+        for semester, classlist in semesters.items():
+            for course in classlist:
+                course_dict.setdefault(
+                    year, {}).setdefault(
+                    semester, {}).setdefault(
+                    course, [])
+
+                course_dict[year][semester][course] = classlist[course]
+    print(course_dict)
+
+    # setup_folders(root, course_dict)
     packets_to_be_sent = make_packets(root, course_dict)
+    print(packets_to_be_sent)
     if len(packets_to_be_sent) == 0:
         print("No files found...")
     else:
@@ -100,23 +141,24 @@ def setup_folders(root: Path, courses: dict):
                     dir.mkdir()
 
 
-def make_packets(root: Path, courses: dict):
+def make_packets(root: Path, course_dict: dict):
     packet_dict = {}
+    for year, semesters in course_dict.items():
+        for semester, courses in semesters.items():
+            for course, folders in courses.items():
+                class_path: Path = root / year / semester / Folders[course]
+                if not class_path.exists():
+                    print(f"Error {class_path} does not exist")
+                    exit()
 
-    for course, folders in courses.items():
-        class_path: Path = root / course
-        if not class_path.exists():
-            print("Error")
-            exit()
-
-        for folder in folders:
-            matching_files = list(class_path.glob(f"* {folder} *"))
-            if matching_files:
-                dest_folder: Path = class_path / folder
-                for file in matching_files:
-                    dest = dest_folder / file.name
-                    packet = Packet(file, dest, folder, course)
-                    packet_dict.setdefault(course.name, {}).setdefault(dest_folder.name, []).append(packet)
+                for folder in folders:
+                    matching_files = list(class_path.glob(f"* {folder} *"))
+                    if matching_files:
+                        dest_folder: Path = class_path / Folders[folder]
+                        for file in matching_files:
+                            dest = dest_folder / file.name
+                            packet = Packet(file, dest, Folders[folder], course)
+                            packet_dict.setdefault(course, {}).setdefault(dest_folder.name, []).append(packet)
 
     return packet_dict
 

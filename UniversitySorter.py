@@ -10,7 +10,7 @@ def main():
         print(f"Error {basepath} does not exist")
         return
 
-    file = Path("JSON/courses.json")
+    file = Path("JSON/course_data.json")
 
     with open(file, 'r') as json_file:
         university: dict = json.load(json_file)

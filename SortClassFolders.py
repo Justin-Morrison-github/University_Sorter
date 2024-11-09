@@ -44,6 +44,7 @@ class Folders(StrEnum):
     SYSC2310 = "Digital Systems"
     COMP1805 = "Discrete Structures I"
     SYSC2006 = "Imperative Programming"
+    COOP1000 = "Co-op"
 
     # 2nd year WINTER
     SYSC2100 = "Algorithms and Data Structures"
@@ -95,7 +96,11 @@ class Packet():
 
 
 def main():
-    root = Path("C:\\Users\\morri\\OneDrive\\University")
+    if Path.cwd().anchor == '/':
+        root = Path("/mnt/c/Users/morri/OneDrive/University")
+    else:
+        root = Path("C:/Users/morri/OneDrive/University")
+
     if not root.exists():
         print('Error')
         exit()
@@ -116,11 +121,9 @@ def main():
                     course, [])
 
                 course_dict[year][semester][course] = classlist[course]
-    print(course_dict)
 
     # setup_folders(root, course_dict)
     packets_to_be_sent = make_packets(root, course_dict)
-    print(packets_to_be_sent)
     if len(packets_to_be_sent) == 0:
         print("No files found...")
     else:

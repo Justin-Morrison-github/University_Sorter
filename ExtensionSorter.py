@@ -1,9 +1,18 @@
+import json
+
 from move import send_file, user_continues, pretty_print_substring, return_pretty_print_string
 from colorama import Fore
 from pathlib import Path
+from Settings import Settings
 
 
 def main():
+    settings_file = "JSON/settings.json"
+    if not Path(settings_file).exists():
+        raise FileNotFoundError(settings_file)
+    with open(settings_file, 'r') as settings_json:
+        settings: dict = json.load(settings_json)
+
     extensions = {
         # AUDIO
         '.mp3': 'AUDIO\\MP3',
@@ -45,7 +54,10 @@ def main():
         '.pptx': 'TEXT\\POWERPOINT'
     }
 
-    srcFolder = Path("C:\\Users\\morri\\Downloads")
+    if Path.cwd().anchor == '/':
+        srcFolder = Path(settings[file][Settings.WSL_SRC_PATH])
+    else:
+        srcFolder = Path(settings[file][Settings.WIN_SRC_PATH])
     files_to_be_sent = []
 
     for file in srcFolder.iterdir():

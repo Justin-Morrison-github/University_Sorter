@@ -2,16 +2,8 @@ from pathlib import Path
 from move import user_continues
 from colorama import Fore
 import json
-from enum import StrEnum, auto
 from Symbols import Symbol
-
-
-class Settings(StrEnum):
-    JSON_FILE = auto()
-    WIN_BASEPATH = auto()
-    WSL_BASEPATH = auto()
-    WIN_SRC_PATH = auto()
-    WSL_SRC_PATH = auto()
+from Settings import Settings
 
 
 def main():

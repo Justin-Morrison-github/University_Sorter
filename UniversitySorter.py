@@ -2,17 +2,42 @@ from pathlib import Path
 from move import user_continues
 from colorama import Fore
 import json
+from enum import StrEnum, auto
+from Symbols import Symbol
+
+
+class Settings(StrEnum):
+    JSON_FILE = auto()
+    WIN_BASEPATH = auto()
+    WSL_BASEPATH = auto()
+    WIN_SRC_PATH = auto()
+    WSL_SRC_PATH = auto()
 
 
 def main():
-    basepath = Path("C:\\Users\\morri\\OneDrive\\University")
+    file = Path(__file__).stem
+    settings_file = "JSON/settings.json"
+    if not Path(settings_file).exists():
+        raise FileNotFoundError(settings_file)
+
+    with open(settings_file, 'r') as settings_json:
+        settings: dict = json.load(settings_json)
+
+    # If I am accessing these scripts from my WSL instance, will have different path structure
+    if Path.cwd().anchor == '/':
+        basepath = Path(settings[file][Settings.WSL_BASEPATH])
+        src_folder_path = Path(settings[file][Settings.WSL_SRC_PATH])
+
+    else:
+        basepath = Path(settings[file][Settings.WIN_BASEPATH])
+        src_folder_path = Path(settings[file][Settings.WIN_SRC_PATH])
+
     if not basepath.exists():
-        print(f"Error {basepath} does not exist")
-        return
+        raise FileNotFoundError(basepath)
+    if not src_folder_path.exists():
+        raise FileNotFoundError(src_folder_path)
 
-    file = Path("JSON/course_data.json")
-
-    with open(file, 'r') as json_file:
+    with open(settings[file][Settings.JSON_FILE], 'r') as json_file:
         university: dict = json.load(json_file)
 
     classes = {}
@@ -22,7 +47,6 @@ def main():
             class_paths: Path = get_class_paths(folder_path)
             classes.update(dict(zip(class_list, class_paths)))
 
-    src_folder_path: Path = Path("C:\\Users\\morri\\Downloads")
     files_to_be_sent = traverse_folder(src_folder_path, classes)
 
     if len(files_to_be_sent) == 0:
@@ -55,18 +79,12 @@ def traverse_folder(src_folder_path: Path, class_folders: dict) -> list[dict]:
     files_to_be_sent = []
 
     for file in src_folder_path.iterdir():
-        file_name_1 = file.name[:9].replace("-", " ").replace("_", " ").upper().strip()
-        file_name_2 = file.name[:4] + " " + file.name[4:8]
+        file_name_1 = file.name[:9].replace(" ", "").replace("-", "").replace("_", "").upper().strip()
 
         if file_name_1 in class_folders:
             files_to_be_sent.append({
                                     "src": file,
                                     "dst": class_folders[file_name_1] / file.name,
-                                    })
-        elif file_name_2 in class_folders:
-            files_to_be_sent.append({
-                                    "src": file,
-                                    "dst": class_folders[file_name_2] / file.name,
                                     })
         elif file.is_dir():
             files_to_be_sent += traverse_folder(file, class_folders)
@@ -81,18 +99,18 @@ def send_file(src: Path, dst: Path, send_enabled=False) -> None:
 
     try:
         if dst.exists():
-            print(Fore.GREEN + f'\u2705 From:  {src}')
-            print(Fore.RED + f'\u274C   To:  {dst}')
+            print(Fore.GREEN + f'{Symbol.SUCCESS} From:  {src}')
+            print(Fore.RED + f'{Symbol.FAILURE}   To:  {dst}')
             print(Fore.YELLOW + f"WARNING: File Already Exists")
         else:
             if send_enabled:
                 src.rename(dst)
-            print(Fore.GREEN + f'\u2705 From:  {src}')
-            print(Fore.GREEN + f'\u2705   To:  {dst}', end="")
+            print(Fore.GREEN + f'{Symbol.SUCCESS} From:  {src}')
+            print(Fore.GREEN + f'{Symbol.SUCCESS}   To:  {dst}', end="")
 
     except FileNotFoundError as e:
-        print(Fore.YELLOW + f'\u274C From:  {src}')
-        print(Fore.YELLOW + f'\u274C   To:  {dst}')
+        print(Fore.YELLOW + f'{Symbol.FAILURE} From:  {src}')
+        print(Fore.YELLOW + f'{Symbol.FAILURE}   To:  {dst}')
         print(Fore.RED + f"ERROR: File Not Found {e}")
 
     except Exception as error:

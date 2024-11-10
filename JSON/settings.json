@@ -1,0 +1,21 @@
+{
+    "UniversitySorter": {
+        "json_file": "JSON/course_data.json",
+        "win_basepath": "C:/Users/morri/Onedrive/University",
+        "wsl_basepath": "/mnt/c/Users/morri/Onedrive/University",
+        "win_src_path": "C:/Users/morri/Downloads",
+        "wsl_src_path": "/mnt/c/Users/morri/Downloads"
+    },
+    "ExtensionSorter": {
+        "json_file": "JSON/extensions.json",
+        "win_src_path": "C:/Users/morri/Downloads",
+        "wsl_src_path": "/mnt/c/Users/morri/Downloads"
+    },
+    "SortClassFolders": {
+        "json_file": "JSON/course_data.json",
+        "win_basepath": "C:/Users/morri/Onedrive/University",
+        "wsl_basepath": "/mnt/c/Users/morri/Onedrive/University",
+        "win_src_path": "C:/Users/morri/Downloads",
+        "wsl_src_path": "/mnt/c/Users/morri/Downloads"
+    }
+}

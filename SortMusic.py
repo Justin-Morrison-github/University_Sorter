@@ -1,19 +1,20 @@
-import os
+# import os
+from pathlib import Path
 from move import send_file, user_continues
 
 
 def main():
 
-    DESTINATION = "C:\\Users\\morri\\OneDrive\\Music\\Songs"
-    SOURCE_FOLDER = "C:\\Users\\morri\\Downloads\\AUDIO\\MP3"
+    destination = Path("C:\\Users\\morri\\OneDrive\\Music\\Songs")
+    src_folder = Path("C:\\Users\\morri\\Downloads\\AUDIO\\MP3")
     files_to_be_sent = []
 
-    for file in os.listdir(SOURCE_FOLDER):
-        if file.endswith(".mp3"):
+    for file in src_folder.iterdir():
+        if file.suffix == ".mp3":
             files_to_be_sent.append(
                 {
-                    "src": os.path.join(SOURCE_FOLDER, file),
-                    "dst": os.path.join(DESTINATION, file)
+                    "src": src_folder / file.name,
+                    "dst": destination / file.name
                 }
             )
 

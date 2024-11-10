@@ -45,8 +45,8 @@ def main():
         print("No files were found")
     else:
         for file in files_to_be_sent:
-            print(f'\u2794  From:   {file["src"]}')
-            print(f'\u2794    To:   {file["dst"]}\n')
+            print(f'{Symbol.ARROW}  From:   {file["src"]}')
+            print(f'{Symbol.ARROW}    To:   {file["dst"]}\n')
 
         if user_continues():
             send_files(files_to_be_sent, send_enabled=True)

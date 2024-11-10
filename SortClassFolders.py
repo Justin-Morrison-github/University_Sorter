@@ -1,8 +1,12 @@
 from pathlib import Path
 from enum import StrEnum
-from move import user_continues, ARROW
+from move import user_continues
 from colorama import Fore
 import json
+from Symbols import Symbol
+from Settings import Settings
+
+# TODO Turn Folders into a JSON file
 
 
 class Folders(StrEnum):
@@ -73,41 +77,47 @@ class Packet():
         self.update_packet_if_needed()
 
     def __str__(self):
-        return f"\t{ARROW} SRC:  {self.src.parent.name}\\{self.src.name}\n\t{ARROW} DST:  {self.dst.parent.name}\\{self.dst.name}\n"
+        return f"\t{Symbol.ARROW} SRC:  {self.src.parent.name}\\{self.src.name}\n\t{Symbol.ARROW} DST:  {self.dst.parent.name}\\{self.dst.name}\n"
 
     def __repr__(self):
         return f"(src: {self.src.parent.name}\\{self.src.name}, dst: {self.dst.parent.name}\\{self.dst.name})"
 
     def update_packet_if_needed(self):
         stem = self.src.stem.lower().split()
-        index = stem.index(self.parent.lower())
         dst_folder = ""
 
         if self.parent == Folders.ASSIGNMENT or self.parent == Folders.LAB:
-            self.file_number = int(stem[index + 1])
+            index = stem.index(self.parent.lower())  # Index of the folder
+            self.file_number = int(stem[index + 1])  # The file number comes after the folder, Ex.) Assignment 5
 
-            for folder in self.dst.parent.iterdir():
-                if f"{self.parent.title()} {self.file_number}" in folder.name:
-                    dst_folder = folder
-                    break
+            # for folder in self.dst.parent.iterdir():
+            #     if f"{self.parent.title()} {self.file_number}" in folder.name:
+            #         dst_folder = f'{self.parent} {self.file_number}'
+            #         break
+            dst_folder = f'{self.parent} {self.file_number}'
 
-        new_dst: Path = self.dst.parent / dst_folder / self.dst.name
+        new_dst: Path = self.dst.parent / dst_folder / self.src.name
         self.dst = new_dst
 
 
 def main():
+    file = Path(__file__).stem
+
+    settings_file = "JSON/settings.json"
+    if not Path(settings_file).exists():
+        raise FileNotFoundError(settings_file)
+    with open(settings_file, 'r') as settings_json:
+        settings: dict = json.load(settings_json)
+
     if Path.cwd().anchor == '/':
-        root = Path("/mnt/c/Users/morri/OneDrive/University")
+        root = Path(settings[file][Settings.WSL_BASEPATH])
     else:
-        root = Path("C:/Users/morri/OneDrive/University")
+        root = Path(settings[file][Settings.WIN_BASEPATH])
 
     if not root.exists():
-        print('Error')
-        exit()
+        raise FileNotFoundError(root)
 
-    file = Path("JSON/course_data.json")
-
-    with open(file, 'r') as json_file:
+    with open(settings[file][Settings.JSON_FILE], 'r') as json_file:
         course_data: dict = json.load(json_file)
 
     course_dict = {}
@@ -151,12 +161,12 @@ def make_packets(root: Path, course_dict: dict):
             for course, folders in courses.items():
                 class_path: Path = root / year / semester / Folders[course]
                 if not class_path.exists():
-                    print(f"Error {class_path} does not exist")
-                    exit()
+                    raise FileNotFoundError(class_path)
 
                 for folder in folders:
                     matching_files = list(class_path.glob(f"* {folder} *"))
                     if matching_files:
+                        # TODO Read from JSON file instead of Folders class
                         dest_folder: Path = class_path / Folders[folder]
                         for file in matching_files:
                             dest = dest_folder / file.name
@@ -191,19 +201,19 @@ def send_packet(packet: Packet, send_enabled=False) -> None:
 
     try:
         if packet.dst.exists():
-            print(f"\t{Fore.GREEN}\u2705 From:  {packet.src}")
-            print(f"\t{Fore.RED}\u274C   To:  {packet.dst}")
-            print(f"\t{Fore.YELLOW}WARNING: File Already Exists")
+            print(f"\t{Fore.GREEN}{Symbol.SUCCESS} From:  {packet.src}")
+            print(f"\t{Fore.RED}{Symbol.FAILURE}   To:  {packet.dst}")
+            print(f"\t{Fore.YELLOW}WARNING: File Exists{Symbol.STRAIGHT_ARROW}  {packet.dst}")
         else:
             if send_enabled:
                 packet.src.rename(packet.dst)
-            print(f"\t{Fore.GREEN}\u2705 From:  {packet.src}")
-            print(f"\t{Fore.GREEN}\u2705   To:  {packet.dst}", end="")
+            print(f"\t{Fore.GREEN}{Symbol.SUCCESS} From:  {packet.src}")
+            print(f"\t{Fore.GREEN}{Symbol.SUCCESS}   To:  {packet.dst}", end="")
 
     except FileNotFoundError as e:
-        print(f"\t{Fore.YELLOW}\u274C From:  {packet.src}")
-        print(f"\t{Fore.YELLOW}\u274C   To:  {packet.dst}")
-        print(f"\t{Fore.RED}ERROR: File Not Found {e}")
+        print(f"\t{Fore.YELLOW}{Symbol.FAILURE} From:  {packet.src}")
+        print(f"\t{Fore.YELLOW}{Symbol.FAILURE}   To:  {packet.dst}")
+        print(f"\t{Fore.RED}{e}")
 
     print(Fore.RESET + "\n")
 

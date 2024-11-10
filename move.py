@@ -3,8 +3,7 @@ import shutil
 from colorama import Fore
 import sys
 from pathlib import Path
-
-ARROW = "\u2BA1"
+from Symbols import Symbol
 
 
 def send_file(src, dst, send_enabled=False) -> None:
@@ -119,7 +118,7 @@ def print_hierarchy(
             print(f"{indent * (depth-1)}", end=" ")
 
             if (show_arrow):
-                print(f"{arrow_color}{ARROW}{Fore.RESET}", end=" ")
+                print(f"{arrow_color}{Symbol.ARROW}{Fore.RESET}", end=" ")
 
             count += 1
             if (show_count):

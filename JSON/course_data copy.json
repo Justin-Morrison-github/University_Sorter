@@ -1,0 +1,275 @@
+{
+    "01_First-Year Classes": {
+        "FALL": {
+            "MATH1004": {
+                "folders": [
+                    "INFO",
+                    "LECTURE",
+                    "REVIEW",
+                    "PASS",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Calculus"
+            },
+            "CHEM1101": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW"
+                ],
+                "name": "Chemistry"
+            },
+            "ECOR1048": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW",
+                    "PASS",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Dynamics"
+            },
+            "ECOR1055": {
+                "folders": [
+                    "INFO",
+                    "LECTURE"
+                ],
+                "name": "Eng Disciplines"
+            },
+            "ECOR1057": {
+                "folders": [
+                    "INFO",
+                    "LECTURE"
+                ],
+                "name": "Eng Profession"
+            },
+            "ECOR1046": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW",
+                    "PASS",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Mechanics"
+            },
+            "ECOR1045": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LECTURE",
+                    "REVIEW",
+                    "PASS",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Statics"
+            },
+            "PHYS1003": {
+                "folders": [
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Thermodynamics"
+            },
+            "ECOR1047": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW",
+                    "PASS",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Visual Communication"
+            }
+        },
+        "WINTER": {
+            "ECOR1043": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW",
+                    "PASS",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Circuits"
+            },
+            "ECOR1042": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW",
+                    "PASS",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Data Management"
+            },
+            "PHYS1004": {
+                "folders": [
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Electromagnetism"
+            },
+            "ECOR1056": {
+                "folders": [
+                    "LAB",
+                    "LECTURE"
+                ],
+                "name": "Eng Disciplines 2"
+            },
+            "GEOG1020": {
+                "folders": [
+                    "INFO",
+                    "LECTURE",
+                    "REVIEW",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Geography"
+            },
+            "MATH1104": {
+                "folders": [
+                    "INFO",
+                    "LECTURE",
+                    "REVIEW",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Linear Algebra"
+            },
+            "ECOR1044": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW",
+                    "PASS",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+            ],
+            "name": "Mechatronics"
+        },
+            "ECOR1041": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW",
+                    "PASS",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Programming"
+            }
+        }
+    },
+    "02_Second-Year Classes": {
+        "FALL": {
+            "ELEC2501": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW",
+                    "PASS",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Circuits and Signals"
+            },
+            "COOP1000": {
+                "folders": [
+                    "ASSIGNMENT"
+                ],
+                "name": "Co-op"
+            },
+            "MATH1005": {
+                "folders": [
+                    "INFO",
+                    "LECTURE",
+                    "REVIEW",
+                    "PRACTICE",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Differential Equations"
+            },
+            "SYSC2310": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW",
+                    "TEXTBOOK",
+                    "WOOCLAP"
+                ],
+                "name": "Digital Systems"
+            },
+            "COMP1805": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LECTURE",
+                    "REVIEW",
+                    "PASS",
+                    "PRACTICE",
+                    "TEXTBOOK",
+                    "TUTORIAL"
+                ],
+                "name": "Discrete Structures I"
+            },
+            "SYSC2006": {
+                "folders": [
+                    "ASSIGNMENT",
+                    "INFO",
+                    "LAB",
+                    "LECTURE",
+                    "REVIEW",
+                    "PASS",
+                    "TEXTBOOK",
+                    "WOOCLAP"
+                ],
+                "name": "Imperative Programming"
+            }
+        },
+    
+        "WINTER": {
+            "SYSC2100": {"folders": [], "name":"Algorithms and Data Structures"},
+            "CCDP2100": {"folders": [], "name":"CCDP"},
+            "SYSC2320": {"folders": [], "name":"Computer Architecture"},
+            "COMP2804": {"folders": [], "name":"Discrete Structures II"},
+            "SYSC2004": {"folders": [], "name":"Object Oriented Software"}
+        }
+    }
+}

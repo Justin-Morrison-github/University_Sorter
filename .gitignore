@@ -3,4 +3,6 @@ Sorting Files/
 *.pyc
 tempCodeRunnerFile
 course_grades.json
-course_data.json
+courses.json
+JSON/courses.json
+courses

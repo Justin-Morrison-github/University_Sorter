@@ -12,7 +12,7 @@
         "wsl_src_path": "/mnt/c/Users/morri/Downloads"
     },
     "SortClassFolders": {
-        "json_file": "JSON/course_data copy.json",
+        "json_file": "JSON/course_data.json",
         "win_basepath": "C:/Users/morri/Onedrive/University",
         "wsl_basepath": "/mnt/c/Users/morri/Onedrive/University"
     },

@@ -1,36 +1,7 @@
-import os
-import shutil
 from colorama import Fore
 import sys
 from pathlib import Path
 from ANSI import ANSI
-
-
-def send_file(src, dst, send_enabled=False) -> None:
-    """
-    Sends a file from src to dst. Prints out certain results
-    """
-
-    try:
-        if os.path.exists(dst):
-            print(Fore.GREEN + f'\u2705 From:  {src}')
-            print(Fore.RED + f'\u274C   To:  {dst}')
-            print(Fore.YELLOW + f"WARNING: File Already Exists")
-        else:
-            if send_enabled:
-                shutil.move(src, dst)
-            print(Fore.GREEN + f'\u2705 From:  {src}')
-            print(Fore.GREEN + f'\u2705   To:  {dst}', end="")
-
-    except FileNotFoundError as e:
-        print(Fore.YELLOW + f'\u274C From:  {src}')
-        print(Fore.YELLOW + f'\u274C   To:  {dst}')
-        print(Fore.RED + f"ERROR: File Not Found {e}")
-
-    except Exception as error:
-        print(error)
-
-    print(Fore.RESET + "\n")
 
 
 def user_continues(prompt="Send these files?", dst="") -> bool:
@@ -90,7 +61,6 @@ def replace_previous_print(string):
     sys.stdout.write("\033[F")  # back to previous line
     sys.stdout.write("\033[K")  # clear line
     print(string)
-
 
 
 def get_folder_size(folder):

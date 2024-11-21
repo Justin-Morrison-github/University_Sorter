@@ -6,7 +6,7 @@ class ANSI(StrEnum):
     STRAIGHT_ARROW = " ➔  "
     SUCCESS = "☑ "
     FAILURE = "☒ "
-    WARNING = "⚠ "
+    WARNING = "|⚠ "
     INDENT = "    "
     B_FAILURE = "❌ "
     B_SUCCESS = "✅ "

@@ -31,16 +31,14 @@ def prompt_user_for_input() -> str:
             return check
 
 
-def get_files_containing_word2(src_folder_path: Path, word:str) -> list[dict]:
-    files_to_be_sent = []
+def highlight_substr(str: str, substr: str, color=Fore.YELLOW):
+    str_len = len(str)
+    substr_len = len(substr)
 
-    for file in src_folder_path.iterdir():
-        if word.lower() in file.name.lower():
-            files_to_be_sent.append(file)
-        elif file.is_dir():
-            files_to_be_sent += get_files_containing_word2(file, word)
+    index = str.lower().find(substr.lower())
 
-    return files_to_be_sent
+    string = f"{str[0:index]}{color}{str[index:index+substr_len]}{Fore.RESET}{str[index+substr_len: str_len]}"
+    return string
 
 
 def get_files_containing_word(src_folder_path: Path, word: str, include_suffix:bool = False, include_folders:bool = False) -> list[dict]:

@@ -2,7 +2,7 @@ from pathlib import Path
 from move import user_continues
 from colorama import Fore
 import json
-from Symbols import Symbol
+from ANSI import ANSI
 from Settings import Settings
 
 
@@ -45,8 +45,8 @@ def main():
         print("No files were found")
     else:
         for file in files_to_be_sent:
-            print(f'{Symbol.ARROW}  From:   {file["src"]}')
-            print(f'{Symbol.ARROW}    To:   {file["dst"]}\n')
+            print(f'{ANSI.ARROW}  From:   {file["src"]}')
+            print(f'{ANSI.ARROW}    To:   {file["dst"]}\n')
 
         if user_continues():
             send_files(files_to_be_sent, send_enabled=True)
@@ -91,18 +91,18 @@ def send_file(src: Path, dst: Path, send_enabled=False) -> None:
 
     try:
         if dst.exists():
-            print(Fore.GREEN + f'{Symbol.SUCCESS} From:  {src}')
-            print(Fore.RED + f'{Symbol.FAILURE}   To:  {dst}')
+            print(Fore.GREEN + f'{ANSI.SUCCESS} From:  {src}')
+            print(Fore.RED + f'{ANSI.FAILURE}   To:  {dst}')
             print(Fore.YELLOW + f"WARNING: File Already Exists")
         else:
             if send_enabled:
                 src.rename(dst)
-            print(Fore.GREEN + f'{Symbol.SUCCESS} From:  {src}')
-            print(Fore.GREEN + f'{Symbol.SUCCESS}   To:  {dst}', end="")
+            print(Fore.GREEN + f'{ANSI.SUCCESS} From:  {src}')
+            print(Fore.GREEN + f'{ANSI.SUCCESS}   To:  {dst}', end="")
 
     except FileNotFoundError as e:
-        print(Fore.YELLOW + f'{Symbol.FAILURE} From:  {src}')
-        print(Fore.YELLOW + f'{Symbol.FAILURE}   To:  {dst}')
+        print(Fore.YELLOW + f'{ANSI.FAILURE} From:  {src}')
+        print(Fore.YELLOW + f'{ANSI.FAILURE}   To:  {dst}')
         print(Fore.RED + f"ERROR: File Not Found {e}")
 
     except Exception as error:

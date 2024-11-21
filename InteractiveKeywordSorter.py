@@ -1,9 +1,10 @@
-from move import prompt_user, pretty_print_substring, replace_previous_print, user_continues, send_file
+from move import prompt_user, pretty_print_substring, replace_previous_print, user_continues
 import os
 import tkinter
 from tkinter import filedialog
 from colorama import Fore
 import time
+import shutil
 
 SRC_COLOR = Fore.GREEN
 KEYWORD_COLOR = Fore.YELLOW
@@ -42,6 +43,32 @@ def main(send_enabled: bool):
             else:
                 print("Send Function Not Enabled")
 
+
+def send_file(src, dst, send_enabled=False) -> None:
+    """
+    Sends a file from src to dst. Prints out certain results
+    """
+
+    try:
+        if os.path.exists(dst):
+            print(Fore.GREEN + f'\u2705 From:  {src}')
+            print(Fore.RED + f'\u274C   To:  {dst}')
+            print(Fore.YELLOW + f"WARNING: File Already Exists")
+        else:
+            if send_enabled:
+                shutil.move(src, dst)
+            print(Fore.GREEN + f'\u2705 From:  {src}')
+            print(Fore.GREEN + f'\u2705   To:  {dst}', end="")
+
+    except FileNotFoundError as e:
+        print(Fore.YELLOW + f'\u274C From:  {src}')
+        print(Fore.YELLOW + f'\u274C   To:  {dst}')
+        print(Fore.RED + f"ERROR: File Not Found {e}")
+
+    except Exception as error:
+        print(error)
+
+    print(Fore.RESET + "\n")
 
 def find_files_with_keyword(src_folder: str, dst_folder: str,  check: str) -> list[dict]:
     file_list = []

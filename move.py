@@ -3,7 +3,7 @@ import shutil
 from colorama import Fore
 import sys
 from pathlib import Path
-from Symbols import Symbol
+from ANSI import ANSI
 
 
 def send_file(src, dst, send_enabled=False) -> None:
@@ -73,20 +73,6 @@ def return_pretty_print_string(str: str, substr: str, start="\u2794  ", end="", 
     string = start + str[0: index] + color + str[index: index + substr_len] + Fore.RESET + str[index +
                                                                                                substr_len: str_len] + end
     return string
-
-
-def pretty_path(file: str, basepath: str):
-
-    colors = [Fore.BLUE, Fore.GREEN, Fore.YELLOW, Fore.RED, Fore.MAGENTA, Fore.BLACK]
-
-    folders = file["src"].split("\\")
-    index = folders.index(os.path.basename(basepath)) + 1
-    for i in range(index, len(folders)):
-        if i == len(folders) - 1:
-            print(Fore.WHITE + folders[i])
-        else:
-            print(colors[i-index] + folders[i], end=" -> ")
-    print(Fore.RESET, end="")
 
 
 def prompt_user(prompt: str, exit_char='q') -> str:

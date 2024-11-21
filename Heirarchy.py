@@ -4,7 +4,7 @@ from tkinter import filedialog
 from move import get_folder_size
 from sys import argv
 from colorama import Fore
-from Symbols import Symbol
+from ANSI import ANSI
 
 def main():
     init_dir = "C:\\Users\\morri\\Downloads"
@@ -31,7 +31,7 @@ def print_hierarchy(
             print(f"{indent * (depth-1)}", end=" ")
 
             if (show_arrow):
-                print(f"{arrow_color}{Symbol.ARROW}{Fore.RESET}", end=" ")
+                print(f"{arrow_color}{ANSI.ARROW}{Fore.RESET}", end=" ")
 
             count += 1
             if (show_count):

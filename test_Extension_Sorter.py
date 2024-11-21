@@ -1,8 +1,9 @@
 import unittest
 from pathlib import Path
 import tempfile
-from ExtensionSorter import get_files_to_be_sent, set_up_settings
-
+from ExtensionSorter import get_files_to_be_sent
+from colorama import Fore
+from Settings import Settings
 
 class TestExtensionSorter(unittest.TestCase):
 
@@ -42,23 +43,18 @@ class TestExtensionSorter(unittest.TestCase):
             files_to_be_sent = get_files_to_be_sent(self.extensions, root)
 
             self.assertEqual(files_to_be_sent, expected_file_to_be_sent)
+            self.assertEqual(files_to_be_sent, expected_file_to_be_sent)
 
             # # Check if the file was moved (optional: if the function moves files)
             # self.assertTrue(dst_file_path.exists())
             # self.assertFalse(src_file_path.exists())  # Ensure the source file no longer exists
 
     def test_set_up_settings(self):
-        expected_settings =  {
-            "json_file": "JSON/extensions.json",
-            "win_src_path": "C:/Users/morri/Downloads",
-            "wsl_src_path": "/mnt/c/Users/morri/Downloads"
-        }
+        actual_settings = Settings("JSON/settings.json", "ExtensionSorter")
 
-        actual_settings = set_up_settings("JSON/settings.json", "ExtensionSorter")
-
-        self.assertEqual(actual_settings, expected_settings)
-
-            
+        self.assertEqual(actual_settings.json_file, Path("JSON/extensions.json"))
+        self.assertEqual(actual_settings.win_src_path, Path("C:/Users/morri/Downloads"))
+        self.assertEqual(actual_settings.wsl_src_path, Path("/mnt/c/Users/morri/Downloads"))
        
 if __name__ == "__main__":
     unittest.main()

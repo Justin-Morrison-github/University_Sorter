@@ -1,24 +1,25 @@
 import json
 
-from move import user_continues, pretty_print_substring, return_pretty_print_string
+from move import user_continues
 from colorama import Fore
 from pathlib import Path
 from Settings import Settings
-from Symbols import Symbol
+from ANSI import ANSI
 
 
 def main():
     file = Path(__file__).stem
     
-    settings = set_up_settings("JSON/settings.json", file)
+    # settings = set_up_settings("JSON/settings.json", file)
+    settings = Settings("JSON/settings.json", file)
 
-    with open(settings[Settings.JSON_FILE], 'r') as extension_file:
+    with open(settings.json_file, 'r') as extension_file:
         extensions = json.load(extension_file)
 
     if Path.cwd().anchor == '/':
-        srcFolder = Path(settings[Settings.WSL_SRC_PATH])
+        srcFolder = settings.wsl_src_path
     else:
-        srcFolder = Path(settings[Settings.WIN_SRC_PATH])
+        srcFolder = settings.win_src_path
 
     files_to_be_sent = get_files_to_be_sent(extensions, srcFolder)
 
@@ -30,15 +31,7 @@ def main():
 
         if user_continues():
             for file in files_to_be_sent:
-                send_file(file["src"], file["dst"], send_enabled=True)
-
-
-def set_up_settings(settings_file, current_file):
-    if not Path(settings_file).exists():
-        raise FileNotFoundError(settings_file)
-    with open(settings_file, 'r') as settings_json:
-        settings: dict = json.load(settings_json)
-    return settings[current_file]
+                send_file(file["src"], file["dst"], send_enabled=False)
 
 
 def get_files_to_be_sent(extensions, srcFolder):
@@ -56,17 +49,62 @@ def get_files_to_be_sent(extensions, srcFolder):
     return files_to_be_sent
 
 
+def highlight_substr(str: str, substr: str, color=Fore.YELLOW):
+    str_len = len(str)
+    substr_len = len(substr)
+
+    index = str.lower().find(substr.lower())
+
+    string = f"{str[0:index]}{color}{str[index:index+substr_len]}{Fore.RESET}{str[index+substr_len: str_len]}"
+    return string
+
+def get_pretty_src_string(file: dict[str, Path]):
+    highlight_name = highlight_substr(str(file["src"]), str(file["src"].name), color=Fore.CYAN)
+    highlight_path= highlight_substr(highlight_name, file["src"].suffix, color=Fore.YELLOW)
+
+    return f"{ANSI.ARROW} From: {highlight_path}"
+
+def get_pretty_dst_string(file: dict[str, Path], extensions: dict[str, str]):
+    highlight_name = highlight_substr(str(file["dst"]), str(file["dst"].name), color=Fore.CYAN)
+    ext_path = extensions[file['dst'].parent.parent.name][file["dst"].suffix].split("\\")[-1]
+    highlight_suffix = highlight_substr(highlight_name, file["dst"].suffix, color=Fore.YELLOW)
+    highlight_path = highlight_substr(highlight_suffix, ext_path, color=Fore.YELLOW)
+
+    return f"{ANSI.ARROW}   To: {highlight_path}"
+
 def print_file(file: dict[str, Path], extensions: dict[str, str]):
-    src_string = return_pretty_print_string(str(file["src"]), str(file["src"].name), start="", color=Fore.CYAN)
-    pretty_print_substring(src_string, file["src"].suffix, start=f"{Symbol.ARROW}  From:  ", color=Fore.YELLOW)
+    src_string = get_pretty_src_string(file)
+    print(src_string)
 
-    dst_string = return_pretty_print_string(str(file["dst"]), str(file["dst"].name), start="", color=Fore.CYAN)
+    dst_string = get_pretty_dst_string(file, extensions)
+    print(dst_string + "\n")
 
-    ext_path = extensions[file['dst'].parent.parent.name][file["src"].suffix].split("\\")[-1]
-    dst_string = return_pretty_print_string(dst_string, file["src"].suffix, start="", color=Fore.YELLOW)
+class FileSuccess():
+    def __init__(self, src:Path, dst:Path):
+        message = (
+            f"{Fore.GREEN}{ANSI.B_SUCCESS} {src.name}\n"
+            f"{ANSI.INDENT}{ANSI.B_SUCCESS} From:  {src}\n"
+            f"{ANSI.INDENT}{ANSI.SUCCESS}   To:  {dst}{Fore.RESET}"
+        )
 
-    pretty_print_substring(dst_string, ext_path, start=f"{Symbol.ARROW}    To:  ", end='\n', color=Fore.YELLOW)
+        print(message)
 
+
+def format_error_message(src:Path, dst:Path, e):
+    if isinstance(e, FileExistsError):
+        return (
+            f"{Fore.YELLOW}{ANSI.WARNING} {src.name}  (WARNING: File Already Exists)\n"
+            f"{ANSI.INDENT}{Fore.GREEN}{ANSI.B_SUCCESS} From:  {src}\n"
+            f"{ANSI.INDENT}{Fore.YELLOW}{ANSI.WARNING}   To:  {dst}{Fore.RESET}\n"
+
+        )
+    
+    elif isinstance(e, FileNotFoundError):
+        return (
+            f"{Fore.RED}{ANSI.FAILURE}{src.name}  (ERROR: File Not Found)\n"
+            f"{ANSI.INDENT}{Fore.RED}{ANSI.FAILURE} From: {src}\n"
+            f"{ANSI.INDENT}{Fore.GREEN}{ANSI.SUCCESS}   To:  {dst}{Fore.RESET}"
+        )
 
 def send_file(src: Path, dst: Path, send_enabled=False) -> None:
     """
@@ -75,24 +113,18 @@ def send_file(src: Path, dst: Path, send_enabled=False) -> None:
 
     try:
         if dst.exists():
-            print(Fore.GREEN + f'{Symbol.SUCCESS} From:  {src}')
-            print(Fore.RED + f'{Symbol.FAILURE}   To:  {dst}')
-            print(Fore.YELLOW + f"WARNING: File Already Exists")
-        else:
-            if send_enabled:
-                src.rename(dst)
-            print(Fore.GREEN + f'{Symbol.SUCCESS} From:  {src}')
-            print(Fore.GREEN + f'{Symbol.SUCCESS}   To:  {dst}', end="")
-
-    except FileNotFoundError as e:
-        print(Fore.YELLOW + f'{Symbol.FAILURE} From:  {src}')
-        print(Fore.YELLOW + f'{Symbol.FAILURE}   To:  {dst}')
-        print(Fore.RED + f"ERROR: File Not Found {e}")
-
+            raise FileExistsError(format_error_message(src, dst, FileExistsError()))
+        elif not src.exists():
+            raise FileNotFoundError(format_error_message(src, dst, FileNotFoundError()))
+        
+        if send_enabled:
+            src.rename(dst)
+        FileSuccess(src, dst)
+        
     except Exception as error:
         print(error)
 
-    print(Fore.RESET + "\n")
+    print("\n")
 
 
 if __name__ == "__main__":

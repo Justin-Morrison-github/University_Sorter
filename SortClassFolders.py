@@ -3,11 +3,8 @@ from enum import StrEnum
 from move import user_continues
 from colorama import Fore
 import json
-from Symbols import Symbol
+from ANSI import ANSI
 from Settings import Settings
-
-# TODO Turn Folders into a JSON file
-
 
 class Folders(StrEnum):
     ASSIGNMENT = "Assignment"
@@ -42,7 +39,7 @@ class Packet():
         self.update_packet_if_needed()
 
     def __str__(self):
-        return f"     {Symbol.ARROW} SRC:  {self.src.parent.name}\\{self.src.name}\n     {Symbol.ARROW} DST:  {self.dst.parent.name}\\{self.dst.name}\n"
+        return f"     {ANSI.ARROW} SRC:  {self.src.parent.name}\\{self.src.name}\n     {ANSI.ARROW} DST:  {self.dst.parent.name}\\{self.dst.name}\n"
 
     def __repr__(self):
         return f"(src: {self.src.parent.name}\\{self.src.name}, dst: {self.dst.parent.name}\\{self.dst.name})"
@@ -63,24 +60,21 @@ class Packet():
 def main():
     file = Path(__file__).stem
 
-    settings_file = "JSON/settings.json"
-
-    with open(settings_file, 'r') as settings_json:
-        settings: dict = json.load(settings_json)
+    settings = Settings("JSON/settings.json", file)
 
     if Path.cwd().anchor == '/':
-        root = Path(settings[file][Settings.WSL_BASEPATH])
+        settings.root = settings.wsl_basepath
     else:
-        root = Path(settings[file][Settings.WIN_BASEPATH])
+        settings.root = settings.win_basepath
 
-    if not root.exists():
-        raise FileNotFoundError(root)
+    if not settings.root.exists():
+        raise FileNotFoundError(settings.root)
 
-    with open(settings[file][Settings.JSON_FILE], 'r') as json_file:
+    with open(settings.json_file, 'r') as json_file:
         course_data: dict = json.load(json_file)
 
     # setup_folders(root, course_dict)
-    packets_to_be_sent = make_packets(root, course_data)
+    packets_to_be_sent = make_packets(settings.root, course_data)
     if len(packets_to_be_sent) == 0:
         print("No files found...")
     else:
@@ -154,18 +148,18 @@ def send_packet(packet: Packet, send_enabled=False) -> None:
 
     try:
         if packet.dst.exists():
-            print(f"\t{Fore.GREEN}{Symbol.SUCCESS} From:  {packet.src}")
-            print(f"\t{Fore.RED}{Symbol.FAILURE}   To:  {packet.dst}")
-            print(f"\t{Fore.YELLOW}WARNING: File Exists{Symbol.STRAIGHT_ARROW}  {packet.dst}")
+            print(f"\t{Fore.GREEN}{ANSI.SUCCESS} From:  {packet.src}")
+            print(f"\t{Fore.RED}{ANSI.FAILURE}   To:  {packet.dst}")
+            print(f"\t{Fore.YELLOW}WARNING: File Exists{ANSI.STRAIGHT_ARROW}  {packet.dst}")
         else:
             if send_enabled:
                 packet.src.rename(packet.dst)
-            print(f"\t{Fore.GREEN}{Symbol.SUCCESS} From:  {packet.src}")
-            print(f"\t{Fore.GREEN}{Symbol.SUCCESS}   To:  {packet.dst}", end="")
+            print(f"\t{Fore.GREEN}{ANSI.SUCCESS} From:  {packet.src}")
+            print(f"\t{Fore.GREEN}{ANSI.SUCCESS}   To:  {packet.dst}", end="")
 
     except FileNotFoundError as e:
-        print(f"\t{Fore.YELLOW}{Symbol.FAILURE} From:  {packet.src}")
-        print(f"\t{Fore.YELLOW}{Symbol.FAILURE}   To:  {packet.dst}")
+        print(f"\t{Fore.YELLOW}{ANSI.FAILURE} From:  {packet.src}")
+        print(f"\t{Fore.YELLOW}{ANSI.FAILURE}   To:  {packet.dst}")
         print(f"\t{Fore.RED}{e}")
 
     print(Fore.RESET + "\n")

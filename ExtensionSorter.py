@@ -5,23 +5,18 @@ from colorama import Fore
 from pathlib import Path
 from Settings import Settings
 from ANSI import ANSI
-
+from PrettyPrint import highlight_substr
 
 def main():
     file = Path(__file__).stem
     
-    # settings = set_up_settings("JSON/settings.json", file)
     settings = Settings("JSON/settings.json", file)
+    root = settings.src_path
 
     with open(settings.json_file, 'r') as extension_file:
         extensions = json.load(extension_file)
 
-    if Path.cwd().anchor == '/':
-        srcFolder = settings.wsl_src_path
-    else:
-        srcFolder = settings.win_src_path
-
-    files_to_be_sent = get_files_to_be_sent(extensions, srcFolder)
+    files_to_be_sent = get_files_to_be_sent(extensions, root)
 
     if len(files_to_be_sent) == 0:
         print("No files were found")
@@ -41,7 +36,7 @@ def get_files_to_be_sent(extensions, srcFolder):
             if file.suffix in extensions[folder] and file.name not in extensions:
                 files_to_be_sent.append(
                     {
-                        "src":  srcFolder / file,
+                        "src": srcFolder / file,
                         "dst": srcFolder / Path(f"{(extensions[folder][file.suffix])}/{file.name}")
                     }
                 )
@@ -49,26 +44,16 @@ def get_files_to_be_sent(extensions, srcFolder):
     return files_to_be_sent
 
 
-def highlight_substr(str: str, substr: str, color=Fore.YELLOW):
-    str_len = len(str)
-    substr_len = len(substr)
-
-    index = str.lower().find(substr.lower())
-
-    string = f"{str[0:index]}{color}{str[index:index+substr_len]}{Fore.RESET}{str[index+substr_len: str_len]}"
-    return string
-
 def get_pretty_src_string(file: dict[str, Path]):
     highlight_name = highlight_substr(str(file["src"]), str(file["src"].name), color=Fore.CYAN)
     highlight_path= highlight_substr(highlight_name, file["src"].suffix, color=Fore.YELLOW)
 
     return f"{ANSI.ARROW} From: {highlight_path}"
 
+
 def get_pretty_dst_string(file: dict[str, Path], extensions: dict[str, str]):
     highlight_name = highlight_substr(str(file["dst"]), str(file["dst"].name), color=Fore.CYAN)
-    ext_path = extensions[file['dst'].parent.parent.name][file["dst"].suffix].split("\\")[-1]
-    highlight_suffix = highlight_substr(highlight_name, file["dst"].suffix, color=Fore.YELLOW)
-    highlight_path = highlight_substr(highlight_suffix, ext_path, color=Fore.YELLOW)
+    highlight_path = highlight_substr(highlight_name, file["dst"].parent.name, color=Fore.YELLOW)
 
     return f"{ANSI.ARROW}   To: {highlight_path}"
 
@@ -84,7 +69,7 @@ class FileSuccess():
         message = (
             f"{Fore.GREEN}{ANSI.B_SUCCESS} {src.name}\n"
             f"{ANSI.INDENT}{ANSI.B_SUCCESS} From:  {src}\n"
-            f"{ANSI.INDENT}{ANSI.SUCCESS}   To:  {dst}{Fore.RESET}"
+            f"{ANSI.INDENT}{ANSI.B_SUCCESS}   To:  {dst}{Fore.RESET}"
         )
 
         print(message)
@@ -96,7 +81,6 @@ def format_error_message(src:Path, dst:Path, e):
             f"{Fore.YELLOW}{ANSI.WARNING} {src.name}  (WARNING: File Already Exists)\n"
             f"{ANSI.INDENT}{Fore.GREEN}{ANSI.B_SUCCESS} From:  {src}\n"
             f"{ANSI.INDENT}{Fore.YELLOW}{ANSI.WARNING}   To:  {dst}{Fore.RESET}\n"
-
         )
     
     elif isinstance(e, FileNotFoundError):

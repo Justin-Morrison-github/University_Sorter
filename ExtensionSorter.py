@@ -7,6 +7,7 @@ from Settings import Settings
 from ANSI import ANSI
 from PrettyPrint import highlight_substr
 
+
 def main():
     file = Path(__file__).stem
     
@@ -22,7 +23,7 @@ def main():
         print("No files were found")
     else:
         for file in files_to_be_sent:
-            print_file(file, extensions)
+            print_file(file)
 
         if user_continues():
             for file in files_to_be_sent:
@@ -45,23 +46,23 @@ def get_files_to_be_sent(extensions, srcFolder):
 
 
 def get_pretty_src_string(file: dict[str, Path]):
-    highlight_name = highlight_substr(str(file["src"]), str(file["src"].name), color=Fore.CYAN)
+    highlight_name = highlight_substr(str(file["src"]).replace("\\", "/"), str(file["src"].name), color=Fore.CYAN)
     highlight_path= highlight_substr(highlight_name, file["src"].suffix, color=Fore.YELLOW)
 
     return f"{ANSI.ARROW} From: {highlight_path}"
 
 
-def get_pretty_dst_string(file: dict[str, Path], extensions: dict[str, str]):
-    highlight_name = highlight_substr(str(file["dst"]), str(file["dst"].name), color=Fore.CYAN)
+def get_pretty_dst_string(file: dict[str, Path]):
+    highlight_name = highlight_substr(str(file["dst"]).replace("\\", "/"), str(file["dst"].name), color=Fore.CYAN)
     highlight_path = highlight_substr(highlight_name, file["dst"].parent.name, color=Fore.YELLOW)
 
     return f"{ANSI.ARROW}   To: {highlight_path}"
 
-def print_file(file: dict[str, Path], extensions: dict[str, str]):
+def print_file(file: dict[str, Path]):
     src_string = get_pretty_src_string(file)
     print(src_string)
 
-    dst_string = get_pretty_dst_string(file, extensions)
+    dst_string = get_pretty_dst_string(file)
     print(dst_string + "\n")
 
 class FileSuccess():

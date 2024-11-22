@@ -28,6 +28,17 @@ class Settings():
             self.src_path = Path(settings.get(Settings.WIN_SRC_PATH, "NULL"))
             self.dst_path = Path(settings.get(Settings.WIN_DST_PATH, "NULL"))
 
+        if not self.basepath.exists() and self.basepath.name != "NULL":
+            raise FileNotFoundError(self.basepath)
+        if not self.src_path.exists() and self.src_path.name != "NULL":
+            raise FileNotFoundError(self.src_path)
+        if not self.dst_path.exists() and self.dst_path.name != "NULL":
+            raise FileNotFoundError(self.dst_path)
+
+
         self.json_file = Path(settings.get(Settings.JSON_FILE, "NULL"))
+        if not self.json_file.exists() and self.json_file.name != "NULL":
+            raise FileNotFoundError(self.json_file)
+        
         self.paths_to_check = settings.get(Settings.PATHS_TO_CHECK, "NULL")
         self.root = "NULL"

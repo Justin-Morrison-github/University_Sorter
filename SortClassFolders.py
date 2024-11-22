@@ -61,20 +61,12 @@ def main():
     file = Path(__file__).stem
 
     settings = Settings("JSON/settings.json", file)
-
-    if Path.cwd().anchor == '/':
-        settings.root = settings.wsl_basepath
-    else:
-        settings.root = settings.win_basepath
-
-    if not settings.root.exists():
-        raise FileNotFoundError(settings.root)
-
+    
     with open(settings.json_file, 'r') as json_file:
         course_data: dict = json.load(json_file)
 
     # setup_folders(root, course_dict)
-    packets_to_be_sent = make_packets(settings.root, course_data)
+    packets_to_be_sent = make_packets(settings.basepath, course_data)
     if len(packets_to_be_sent) == 0:
         print("No files found...")
     else:

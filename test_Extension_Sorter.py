@@ -6,6 +6,8 @@ from colorama import Fore
 from Settings import Settings
 from ANSI import ANSI
 import json
+
+
 class TestExtensionSorter(unittest.TestCase):
 
     @classmethod
@@ -17,7 +19,7 @@ class TestExtensionSorter(unittest.TestCase):
             self.assertEqual(self.settings.src_path, Path("/mnt/c/Users/morri/Downloads"))
         else:
             self.assertEqual(self.settings.src_path, Path("C:/Users/morri/Downloads"))
-        
+
         self.assertEqual(self.settings.json_file, Path("JSON/extensions.json"))
         self.assertTrue(self.settings.json_file.exists())
         self.assertTrue(self.settings.src_path.exists())
@@ -57,7 +59,7 @@ class TestExtensionSorter(unittest.TestCase):
                 if category in allowed_empty_key_categories and extension == "":
                     continue  # Skip the allowed empty key case
                 self.assertTrue(
-                    extension.startswith("."), 
+                    extension.startswith("."),
                     f"Key '{extension}' in category '{category}' does not start with a dot"
                 )
 
@@ -142,7 +144,7 @@ class TestExtensionSorter(unittest.TestCase):
             root = Path(temp_dir)
             src_file_1 = root / "test.mp3"
             src_file_2 = root / "test.wav"
-            
+
             audio = root / "AUDIO"
             mp3 = audio / "MP3"
             wav = audio / "WAV"
@@ -159,8 +161,8 @@ class TestExtensionSorter(unittest.TestCase):
             }, {
                 "src": src_file_2,
                 "dst": dst_file_2
-            }]            
-            
+            }]
+
             files_to_be_sent = get_files_to_be_sent(self.extensions, root)
 
             for file in files_to_be_sent:
@@ -175,13 +177,13 @@ class TestExtensionSorter(unittest.TestCase):
         expected_string = f"{ANSI.ARROW} From: C:/Users/morri/Downloads/{Fore.CYAN}Untitled{Fore.YELLOW}.png{Fore.RESET}{Fore.RESET}"
         self.assertEqual(actual_string, expected_string)
 
-    def test_get_pretty_src_string(self):
+    def test_get_pretty_src_stringV2(self):
         test_dst = {"dst": Path("C:/Users/morri/Downloads/IMAGES/PNG/Untitled.png")}
 
         actual_string = get_pretty_dst_string(test_dst)
         expected_string = f"{ANSI.ARROW}   To: C:/Users/morri/Downloads/IMAGES/{Fore.YELLOW}PNG{Fore.RESET}/{Fore.CYAN}Untitled.png{Fore.RESET}"
         self.assertEqual(actual_string, expected_string)
-    
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=0)

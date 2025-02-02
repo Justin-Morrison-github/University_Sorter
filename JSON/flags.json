@@ -1,0 +1,28 @@
+{
+    "Extensions": {
+        ".mp3": "C:/Users/morri/OneDrive/Music/Songs",
+        ".wav": "C:/Users/morri/OneDrive/Music/Vocals",
+        ".mp4": "C:/Users/morri/OneDrive/Videos",
+        ".mov": "C:/Users/morri/OneDrive/Videos",
+        ".HEIC": "C:/Users/morri/OneDrive/Pictures",
+        ".ico": "C:/Users/morri/OneDrive/Pictures",
+        ".jpg": "C:/Users/morri/OneDrive/Pictures",
+        ".pdf": "C:/Users/morri/OneDrive/Pictures",
+        ".png": "C:/Users/morri/OneDrive/Pictures",
+        ".exe": "C:/Users/morri/Downloads/PROGRAMS",
+        ".f3d": "C:/Users/morri/Downloads/OTHER",
+        ".otf": "C:/Users/morri/Downloads/OTHER",
+        ".metadata": "C:/Users/morri/Downloads/OTHER",
+        ".vsix": "C:/Users/morri/Downloads/OTHER"
+    },
+    "Filenames": {
+        "Cardwise": {
+            "2023": "C:/Users/morri/OneDrive/Personal/Financial/Cardwise/2023",
+            "2024": "C:/Users/morri/OneDrive/Personal/Financial/Cardwise/2024",
+            "2025": "C:/Users/morri/OneDrive/Personal/Financial/Cardwise/2025"
+        },
+        "Libro": "C:/Users/morri/OneDrive/Personal/Financial/Libro",
+        "Uni": "C:/Users/morri/OneDrive/Personal/University",
+        "TEMP": "C:/Users/morri/Downloads/TEMPORARY"
+    }
+}

@@ -6,6 +6,7 @@ import json
 from ANSI import ANSI
 from Settings import Settings
 
+
 class Folders(StrEnum):
     ASSIGNMENT = "Assignment"
     INFO = "Info"
@@ -61,7 +62,7 @@ def main():
     file = Path(__file__).stem
 
     settings = Settings("JSON/settings.json", file)
-    
+
     with open(settings.json_file, 'r') as json_file:
         course_data: dict = json.load(json_file)
 
@@ -76,15 +77,15 @@ def main():
             process_packets(packets_to_be_sent, "send", True)
 
 
-def setup_folders(root: Path, courses: dict):
-    for course in root.iterdir():
-        if course.name in courses:
-            class_path = root / course
-            for folder in courses[course.name]:
-                dir = Path(class_path / folder)
-                if not dir.exists():
-                    print(f"Making {dir.name}")
-                    dir.mkdir()
+# def setup_folders(root: Path, courses: dict):
+#     for course in root.iterdir():
+#         if course.name in courses:
+#             class_path = root / course
+#             for folder in courses[course.name]:
+#                 dir = Path(class_path / folder)
+#                 if not dir.exists():
+#                     print(f"Making {dir.name}")
+#                     dir.mkdir()
 
 
 def make_packets(root: Path, course_dict: dict):

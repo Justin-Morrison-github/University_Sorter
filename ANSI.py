@@ -3,10 +3,10 @@ from enum import StrEnum
 
 class ANSI(StrEnum):
     ARROW = "⮡ "
-    STRAIGHT_ARROW = " ➔  "
+    STRAIGHT_ARROW = "➔ "
     SUCCESS = "☑ "
     FAILURE = "☒ "
-    WARNING = "|⚠ "
+    WARNING = "⚠ "
     INDENT = "    "
     B_FAILURE = "❌ "
     B_SUCCESS = "✅ "

@@ -13,11 +13,6 @@
         "win_src_path": "C:/Users/morri/Downloads",
         "wsl_src_path": "/mnt/c/Users/morri/Downloads"
     },
-    "ExtensionSorter": {
-        "json_file": "JSON/extensions.json",
-        "win_src_path": "C:/Users/morri/Downloads",
-        "wsl_src_path": "/mnt/c/Users/morri/Downloads"
-    },
     "SortClassFolders": {
         "json_file": "JSON/courses.json",
         "win_basepath": "C:/Users/morri/Onedrive/University",
@@ -32,9 +27,6 @@
         "win_dst_path": "C:/Users/morri/OneDrive/Music/Songs",
         "wsl_dst_path": "/mnt/c/Users/morri/Onedrive/Music/Songs",
         "win_src_path": "C:/Users/morri/Downloads/AUDIO/MP3",
-        "wsl_src_path": "/mnt/c/Users/morri/Downloads/AUDIO/MP3",
-        "paths_to_check": [
-            ".mp3"
-        ]
+        "wsl_src_path": "/mnt/c/Users/morri/Downloads/AUDIO/MP3"
     }
 }

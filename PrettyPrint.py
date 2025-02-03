@@ -11,13 +11,13 @@ def main():
 
 
 def pretty_path(file: Path):
-    colors = [Fore.BLUE, Fore.GREEN, Fore.YELLOW, Fore.RED, Fore.MAGENTA, Fore.BLACK]
+    colors = [Fore.BLUE, Fore.GREEN, Fore.YELLOW, Fore.RED, Fore.MAGENTA]
     folders = file.parts[3:]
     for i, x in enumerate(folders):
         if x == file.name:
             print(f"{Fore.WHITE}{x}{Fore.RESET}")
         else:
-            print(f"{colors[i%5]}{x}", end = f"{ANSI.STRAIGHT_ARROW}")
+            print(f"{colors[i%5]}{x}", end = f" {ANSI.STRAIGHT_ARROW} ")
 
 def prompt_user_for_input() -> str:
     while True:

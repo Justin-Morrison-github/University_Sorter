@@ -14,14 +14,14 @@ def main():
         folder = Path(filedialog.askdirectory(initialdir=init_dir))
         print(Fore.YELLOW + f"\n{folder.stem}" + Fore.RESET, get_folder_size(folder))
 
-        print_hierarchy(folder, arrow_color=Fore.WHITE, count_color=Fore.WHITE)
+        print_hierarchy(folder)
 
     else:  # Folder given
         print("Error")
         return 1
 
 def print_hierarchy(
-        src_folder_path: str, depth=0, arrow_color=Fore.BLACK, count_color=Fore.BLACK, file_color=Fore.CYAN,
+        src_folder_path: str, depth=0, arrow_color=Fore.WHITE, count_color=Fore.WHITE, file_color=Fore.CYAN,
         size_color=Fore.GREEN, show_arrow=True, show_count=True, indent="\t", deci_places=2):
     depth += 1
     count = 0

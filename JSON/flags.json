@@ -9,9 +9,7 @@
         ".jpg": "C:/Users/morri/OneDrive/Pictures",
         ".pdf": "C:/Users/morri/OneDrive/Pictures",
         ".png": "C:/Users/morri/OneDrive/Pictures",
-        ".exe": "C:/Users/morri/Downloads/PROGRAMS",
-        ".f3d": "C:/Users/morri/Downloads/OTHER",
-        ".otf": "C:/Users/morri/Downloads/OTHER",
+        ".exe": "C:/Users/morri/On Disk",
         ".metadata": "C:/Users/morri/Downloads/OTHER",
         ".vsix": "C:/Users/morri/Downloads/OTHER"
     },
@@ -22,7 +20,6 @@
             "2025": "C:/Users/morri/OneDrive/Personal/Financial/Cardwise/2025"
         },
         "Libro": "C:/Users/morri/OneDrive/Personal/Financial/Libro",
-        "Uni": "C:/Users/morri/OneDrive/Personal/University",
-        "TEMP": "C:/Users/morri/Downloads/TEMPORARY"
+        "Uni": "C:/Users/morri/OneDrive/Personal/University"
     }
 }

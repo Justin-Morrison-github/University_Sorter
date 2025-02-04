@@ -2,13 +2,12 @@ from pathlib import Path
 from enum import IntEnum, StrEnum, auto
 import sys
 import time
-from move import user_continues
 from colorama import Fore
 import json
 from ANSI import ANSI
 from Settings import Settings
 from typing import Optional
-
+from terminal_utils import user_choice_bool, user_choice_numbered, user_continues_with_dst_option
 
 class Style(StrEnum):
     UNDERLINE = "\033[4m"
@@ -148,13 +147,12 @@ class Packet():
 
 def main():
     file = Path(__file__).stem
-
     settings = Settings("JSON/settings.json", file)
 
     with open(settings.json_file, 'r') as json_file:
         course_data: dict = json.load(json_file)
 
-    class_paths = create_class_dict(course_data, settings.basepath)
+    class_paths = create_class_paths(course_data, settings.basepath)
 
     folders_to_be_made: set[Path] = set()
 
@@ -165,10 +163,10 @@ def main():
             print("No files found...")
         else:
             mode = user_select_operation_mode()
-            print(f"{Fore.MAGENTA if mode == Mode.DEBUG else Fore.GREEN}{mode.upper()} MODE {Fore.RESET}")
+            print(f"{Fore.LIGHTMAGENTA_EX if mode == Mode.DEBUG else Fore.GREEN}{mode.upper()} MODE {Fore.RESET}")
 
-            process_packets(packets_to_be_sent, Packet.OP.PRINT)
-            if user_continues():
+            process_packets(packets_to_be_sent, Packet.OP.PRINT, mode)
+            if user_choice_bool():
                 if user_wants_folder_creation(folders_to_be_made):
                     process_packets(packets_to_be_sent, Packet.OP.FULL_SEND, mode)
                 else:
@@ -200,33 +198,14 @@ def user_wants_folder_creation(folders_to_be_made) -> bool:
             print("Invalid Input")
 
 
-def user_select_operation_mode() -> Mode:
+def user_select_operation_mode(delete_lines: bool = True) -> Mode:
     """
     Prompts the user to pick what operation mode to use.
     Returns selected Mode.
     """
-    print("\nOperation Modes:")
-    print("  1.  SEND")
-    print("  2.  DEBUG\n")
-    count = 4
 
-    while True:
-        count += 1
-        try:
-            choice = int(input("Enter Mode: "))
-        except KeyboardInterrupt:
-            raise KeyboardInterrupt
-        except:
-            choice = 0
-
-        if choice == 1:
-            clear_n_previous_lines(count)
-            return Mode.SEND
-        elif choice == 2:
-            clear_n_previous_lines(count)
-            return Mode.DEBUG
-        else:
-            print("Invalid Input")
+    mode: Mode = user_choice_numbered([mode for mode in Mode], "Select Option: ", "Operation Modes:")
+    return mode
 
 
 def clear_n_previous_lines(n):
@@ -242,7 +221,7 @@ def validate_path(path: Path) -> None:
         raise FileNotFoundError(f"Path not found: {path}")
 
 
-def create_class_dict(university: dict, basepath: Path) -> dict:
+def create_class_paths(university: dict, basepath: Path) -> dict[str, Path]:
     classes = {}
     for year, semesters in university.items():
         for semester, class_list in semesters.items():

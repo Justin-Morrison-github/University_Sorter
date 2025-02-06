@@ -2,12 +2,14 @@ from pathlib import Path
 from enum import IntEnum, StrEnum, auto
 import sys
 import time
+from tkinter import Pack
 from colorama import Fore
 import json
 from ANSI import ANSI
 from Settings import Settings
 from typing import Optional
 from terminal_utils import user_choice_bool, user_choice_numbered, user_continues_with_dst_option
+
 
 class Style(StrEnum):
     UNDERLINE = "\033[4m"
@@ -158,34 +160,52 @@ def main():
 
     packets_to_be_sent = traverse_folder_packet(settings.src_path, class_paths, course_data, folders_to_be_made)
 
-    try:
-        if len(packets_to_be_sent) == 0:
-            print("No files found...")
-        else:
-            mode = user_select_operation_mode()
-            print(f"{Fore.LIGHTMAGENTA_EX if mode == Mode.DEBUG else Fore.GREEN}{mode.upper()} MODE {Fore.RESET}")
+    folders_to_delete: set[Path] = get_folders_to_delete(packets_to_be_sent)
 
-            process_packets(packets_to_be_sent, Packet.OP.PRINT, mode)
-            if user_choice_bool():
-                if user_wants_folder_creation(folders_to_be_made):
-                    process_packets(packets_to_be_sent, Packet.OP.FULL_SEND, mode)
-                else:
-                    process_packets(packets_to_be_sent, Packet.OP.SAFE_SEND, mode)
+    for folder in folders_to_delete:
+        print(folder)
+
+    try:
+        if not packets_to_be_sent:
+            print("No files found...")
+            return
+
+        mode = user_select_operation_mode()
+        print(f"{Fore.LIGHTMAGENTA_EX if mode == Mode.DEBUG else Fore.GREEN}{mode.upper()} MODE {Fore.RESET}")
+
+        print_packets(packets_to_be_sent, Packet.OP.PRINT, mode)
+
+        if user_choice_bool():
+            op = determine_op(folders_to_be_made)
+            send_packets(packets_to_be_sent, op, mode)
 
     except KeyboardInterrupt:
-        print("\nProgram Exited")
+        print(f"\nProgram Exited{Fore.RESET}")
         return
 
     print(Fore.RESET)
 
+#TODO delete empty folders left behind
+def get_folders_to_delete(packets_to_be_sent: list[Packet]):
+    folders_to_delete = set()
 
-def user_wants_folder_creation(folders_to_be_made) -> bool:
+    for packet in packets_to_be_sent:
+        if packet.src.is_dir():
+            folders_to_delete.add(packet.src)
+
+    return folders_to_delete
+
+def determine_op(folders_to_be_made: set) -> Packet.OP:
+    if folders_to_be_made:
+        return Packet.OP.FULL_SEND if user_wants_folder_creation() else Packet.OP.SAFE_SEND
+    return Packet.OP.FULL_SEND
+
+
+def user_wants_folder_creation() -> bool:
     """
     Prompts the user if they want to create folders that don't exist (if any)
     in order to send the files.
     """
-    if len(folders_to_be_made) == 0:
-        return True
 
     while True:
         choice = input("Create Missing Folders? (y/n): ").strip().lower()
@@ -204,15 +224,9 @@ def user_select_operation_mode(delete_lines: bool = True) -> Mode:
     Returns selected Mode.
     """
 
-    mode: Mode = user_choice_numbered([mode for mode in Mode], "Select Option: ", "Operation Modes:")
-    return mode
-
-
-def clear_n_previous_lines(n):
-    for _ in range(n):
-        sys.stdout.write("\033[F")  # back to previous line
-        sys.stdout.write("\033[K")  # clear line
-        time.sleep(0.05)
+    return user_choice_numbered(
+        [mode for mode in Mode],
+        "Select Option: ", "Operation Modes:", delete_lines=delete_lines)
 
 
 def validate_path(path: Path) -> None:
@@ -242,23 +256,24 @@ def get_class_paths(folder_path: Path):
     return class_paths
 
 
-def process_packets(packet_list: list[Packet], command=Packet.OP.PRINT, mode=Mode.DEBUG, recursive_call=False):
-    mode_str = f"{Fore.LIGHTMAGENTA_EX}(DEBUG){Fore.RESET}" if mode == Mode.DEBUG else ""
+def print_packets(
+        packet_list: list[Packet],
+        mode: Mode, recursive_call=False, last_course_code="", last_folder_type=""):
 
-    action = f"{mode_str}Files to be sent" if command == Packet.OP.PRINT else f"{mode_str}Sending"
     if not recursive_call:
-        print(f"\n{action}:")
-
-    last_course_code = ""
-    last_folder_type = ""
+        mode_str = f"{Fore.LIGHTMAGENTA_EX}(DEBUG){Fore.RESET}" if mode == Mode.DEBUG else ""
+        print(f"\nFiles to be sent {mode_str}:")
 
     for packet in packet_list:
 
         if packet.src.is_dir() and recursive_call == False:
-            x = [Packet(file, packet.dst.parent / file.name, packet.course_code,
-                        packet.course_name, packet.folder_type, packet.file_number) for file in packet.src.iterdir()]
+            sub_packet_list = [
+                Packet(
+                    file, packet.dst.parent / file.name, packet.course_code, packet.course_name, packet.folder_type,
+                    packet.file_number) for file in packet.src.iterdir()]
 
-            process_packets(x, command, mode, True)
+            last_course_code, last_folder_type = print_packets(
+                sub_packet_list, mode, True, last_course_code, last_folder_type)
             continue
 
         if packet.course_code != last_course_code:
@@ -271,19 +286,40 @@ def process_packets(packet_list: list[Packet], command=Packet.OP.PRINT, mode=Mod
             last_folder_type = packet.folder_type
             time.sleep(0.05)
 
-        if command == Packet.OP.PRINT:
-            print(packet)
-
-        elif command == Packet.OP.FULL_SEND or command == Packet.OP.SAFE_SEND:
-            if command == Packet.OP.FULL_SEND and not packet.dst.parent.exists():
-                if mode == Mode.SEND:
-                    packet.dst.parent.mkdir()
-
-                print(f'{Style.INDENT}{mode_str}{Fore.YELLOW}{ANSI.ARROW} \"{packet.dst.parent.name}\" Folder Created in \"{packet.dst.parent.parent.parent.name}\\{packet.dst.parent.parent.name}\"{Fore.RESET}')
-
-            packet.send(mode)
-
+        print(packet)
         time.sleep(0.05)
+
+    return last_course_code, last_folder_type
+
+
+def send_packets(packet_list: list[Packet], op: Packet.OP, mode=Mode.DEBUG, recursive_call=False):
+
+    if not isinstance(op, Packet.OP):
+        raise TypeError(f"process_packets: {op} is not a valid OP")
+
+    mode_str = f"{Fore.LIGHTMAGENTA_EX}(DEBUG){Fore.RESET}" if mode == Mode.DEBUG else ""
+    if not recursive_call:
+        print(f"\nSending {mode_str}:")
+
+    for packet in packet_list:
+
+        if packet.src.is_dir() and recursive_call == False:
+            sub_packet_list = [
+                Packet(file, packet.dst.parent / file.name, packet.course_code, packet.course_name, packet.folder_type,
+                       packet.file_number) for file in packet.src.iterdir()
+            ]
+
+            send_packets(sub_packet_list, op, mode, True)
+            continue
+
+        if op == Packet.OP.FULL_SEND and not packet.dst.parent.exists():
+            if mode == Mode.SEND:
+                packet.dst.parent.mkdir()
+                print(f'{Style.INDENT}{mode_str}{Fore.YELLOW}{ANSI.ARROW} {Style.UNDERLINE}\"{packet.dst.parent.name}\"{Style.RESET}{Fore.YELLOW} Folder Created in {Style.UNDERLINE}\"{packet.dst.parent.parent.parent.name}\\{packet.dst.parent.parent.name}\"{Style.RESET}')
+            else:
+                print(f'{Style.INDENT}{mode_str}{Fore.YELLOW}{ANSI.ARROW} {Style.UNDERLINE}\"{packet.dst.parent.name}\"{Style.RESET}{Fore.YELLOW} Folder Will Be Created in {Style.UNDERLINE}\"{packet.dst.parent.parent.parent.name}\\{packet.dst.parent.parent.name}\"{Style.RESET}')
+
+        packet.send(mode)
 
 
 # TODO Remove Class Code from folder when being added (Lab/SYSC 2320 Lab 5 ---> Lab/Lab 5)

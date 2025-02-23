@@ -1,20 +1,34 @@
 from pathlib import Path
 from enum import IntEnum, StrEnum, auto
-import sys
-import time
-from tkinter import Pack
-from colorama import Fore
+from colorama import Fore, init as colorama_init
 import json
-from ANSI import ANSI
 from Settings import Settings
 from typing import Optional
-from terminal_utils import user_choice_bool, user_choice_numbered, user_continues_with_dst_option
+from terminal_utils import user_choice_bool, user_choice_numbered, Delay, print_wait
+from string_utils import underline
+from exceptions import DestinationParentDoesNotExist, PathException, SourcePathDoesNotExist, DestinationPathAlreadyExists, FolderNotEmpty, DEBUG_IGNORE_EXCEPTIONS
+from Style import Style
 
 
-class Style(StrEnum):
-    UNDERLINE = "\033[4m"
-    RESET = "\033[0m"
-    INDENT = "     "
+
+
+def catch_debug_exceptions(func):
+    def wrapper(*args, **kwargs):
+        try:
+            results = func(*args, **kwargs)
+        except Exception as e:
+            results = None
+            global current_mode
+            if current_mode == Mode.DEBUG and isinstance(e, PathException):
+                print(e)
+                print()
+            else:
+                raise e
+        return results
+    return wrapper
+
+class Debug(StrEnum):
+    MESSAGE = f"{Fore.LIGHTMAGENTA_EX}(DEBUG)"
 
 
 class Color(StrEnum):
@@ -44,20 +58,12 @@ class Folders(StrEnum):
     UNIVERSITY = "University"
 
 
+current_mode = Mode.DEBUG
+
 class Packet():
-
-    SUCCESS = 0
-
-    class Error(IntEnum):
-        SRC_DNE = 1
-        DST_DNE = 2
-        DST_PARENT_DNE = 3
-        DST_ALREADY_EXISTS = 4
-
     class OP(IntEnum):
-        PRINT = 0
-        SAFE_SEND = 1
-        FULL_SEND = 2
+        SAFE_SEND = 0
+        FULL_SEND = 1
 
     def __init__(self, src: Path, dst: Path, course_code: str, course_name: str, folder_type: Folders,
                  file_number: int = None):
@@ -74,28 +80,31 @@ class Packet():
                 self.From = from_folder
                 break
 
-    def str_directories_between(self, target: Path):
+    def str_dirs_between(self, target: Path):
         num_between = target.parts.index(target.parent.name) - target.parts.index(self.course_name)
         if num_between == 0:
             return ""
 
         return f"/{'.' * num_between}/"
 
+    def format_str(self, str_or_dst: Path) -> str:
+        if self.From == Folders.UNIVERSITY:
+            return f"{self.course_name}{self.str_dirs_between(str_or_dst)}{str_or_dst.parent.name if str_or_dst.parent.name != self.course_name else ''}/{str_or_dst.name}"
+        elif self.src == str_or_dst:
+            return f"{str_or_dst.parent.name if str_or_dst.parent.name != self.course_name else ''}/{str_or_dst.name}"
+        elif self.dst == str_or_dst:
+            return '/'.join(x for x in str_or_dst.parts[str_or_dst.parts.index(self.course_name):])
+
     def __str__(self):
 
-        if self.From == Folders.UNIVERSITY:
-            src_path = f"{self.course_name}{self.str_directories_between(self.src)}{self.src.parent.name if self.src.parent.name != self.course_name else ''}/{self.src.name}"
-            dst_path = f"{self.course_name}{self.str_directories_between(self.dst)}{self.dst.parent.name if self.dst.parent.name != self.course_name else ''}/{self.dst.name}"
-
-        else:
-            src_path = f"{self.src.parent.name if self.src.parent.name != self.course_name else ''}/{self.src.name}"
-            dst_path = '/'.join(x for x in self.dst.parts[self.dst.parts.index(self.course_name):])
+        src_path = self.format_str(self.src)
+        dst_path = self.format_str(self.dst)
 
         return (
-            f"     {ANSI.ARROW} SRC:  {src_path}\n"
-            f"     {ANSI.ARROW} DST:  {dst_path}\n"
+            f"{Style.TAB_ARROW} SRC:  {src_path}\n"
+            f"{Style.TAB_ARROW} DST:  {dst_path}\n"
             + (
-                f"     {Fore.YELLOW}   {ANSI.WARNING} WARNING (Folder Does Not Exist):  {Style.UNDERLINE}{self.dst.parent.name}{Style.RESET} \n{Fore.RESET}"
+                f"{Style.TAB_WARNING} WARNING (Folder Does Not Exist): {Style.UNDERLINE}{self.dst.parent.name}\n"
                 if not self.dst.parent.exists() else ""
             )
         )
@@ -103,51 +112,49 @@ class Packet():
     def __repr__(self):
         return f"(src: {self.src.parent.name}/{self.src.name}, dst: {self.dst.parent.name}/{self.dst.name})"
 
-    def send(self, mode: Mode = Mode.DEBUG) -> None:
-        """
-        Sends a packet from self.src to self.dst. Prints out success, failure, or warnings.
-        Returns 0 (Packet Success) on success, else returns defined Packet Error value.
-        """
-        mode_str = f"{Fore.LIGHTMAGENTA_EX}(DEBUG)" if mode == Mode.DEBUG else ""
+    @catch_debug_exceptions
+    def print_packet_to_send(self):
+        src_str = f"{Style.TAB_SUCCESS} SRC:  {self.src}"
+        dst_str = f"{Style.TAB_SUCCESS} DST:  {self.dst}\n"
+        error = None
+
         if self.dst.exists():
-            print(f"{Style.INDENT}{Fore.GREEN}{ANSI.SUCCESS} SRC:  {self.src}")
-            print(f"{Style.INDENT}{Fore.YELLOW}{ANSI.FAILURE} DST:  {self.dst}")
-            print(f"{Style.INDENT}{Fore.YELLOW}WARNING: DST File Already Exists\n")
-            return Packet.Error.DST_ALREADY_EXISTS
+            dst_str = f"{Style.TAB_WARNING} DST:  {self.dst}"
+            error = DestinationPathAlreadyExists(self.dst)
 
         elif not self.dst.parent.exists():
-            print(f"{Style.INDENT}{mode_str}{Fore.GREEN}{ANSI.SUCCESS} SRC:  {self.src}")
-            print(f"{Style.INDENT}{mode_str}{Fore.YELLOW}{ANSI.WARNING} DST:  {self.dst}")
-            print(f"{Style.INDENT}{mode_str}{Fore.YELLOW}{ANSI.WARNING} WARNING (Folder Does Not Exist): {Style.UNDERLINE}{self.dst.parent.name}{Style.RESET}\n")
-            return Packet.Error.DST_PARENT_DNE
+            dst_str = f"{Style.TAB_WARNING} DST:  {self.dst}"
+            error = DestinationParentDoesNotExist(self.dst)
 
         elif not self.src.exists():
-            print(f"{Style.INDENT}{mode_str}{Fore.YELLOW}{ANSI.WARNING} SRC:  {self.src}")
-            print(f"{Style.INDENT}{mode_str}{Fore.GREEN}{ANSI.SUCCESS} DST:  {self.dst}")
-            print(f"{Style.INDENT}{mode_str}{Fore.YELLOW}{ANSI.WARNING} WARNING (Src file Does Not Exist): {Style.UNDERLINE}{self.src.name}{Style.RESET}\n")
-            return Packet.Error.SRC_DNE
+            src_str = f"{Style.TAB_WARNING} SRC:  {self.src}"
+            error = SourcePathDoesNotExist(self.src)
 
-        else:
-            try:
-                if mode == Mode.SEND:
-                    self.src.rename(self.dst)
+        print(src_str)
+        print(dst_str)
 
-                print(f"{Style.INDENT}{mode_str}{Fore.GREEN}{ANSI.SUCCESS} SRC:  {self.src}")
-                print(f"{Style.INDENT}{mode_str}{Fore.GREEN}{ANSI.SUCCESS} DST:  {self.dst}{Fore.RESET}\n")
-                return Packet.Error.DST_ALREADY_EXISTS
+        if error:
+            raise error
 
-            except FileNotFoundError as e:
-                print(f"{Fore.RED}ERROR: {e}{Fore.RESET}")
-                # outcome = f"{Fore.GREEN}{ANSI.SUCCESS}" if self.src.exists() else f"{Fore.RED}{ANSI.FAILURE}"
-                # print(f"{Style.INDENT}{mode_str}{outcome} SRC:  {self.src}")
-                # print(f"{Style.INDENT}{mode_str}{Fore.RED}{ANSI.FAILURE} DST:  {self.dst}")
-                # print(f"{Style.INDENT}{mode_str}{Fore.RED}{e}")
-                # return Packet.Error.SRC_DNE
+    def send(self, mode: Mode):
+        """
+        Try to send a packet from self.src to self.dst. Raises errors as defined by PathExceptions.
+        """
 
-        print(Fore.RESET + "\n")
+        try:
+            self.print_packet_to_send()
+        except PathException as e:
+            raise e
+
+        # If reached here no exceptions were raised
+        if mode == Mode.SEND:
+            self.src.rename(self.dst)
 
 
+@catch_debug_exceptions
 def main():
+    colorama_init(autoreset=True)
+
     file = Path(__file__).stem
     settings = Settings("JSON/settings.json", file)
 
@@ -162,30 +169,64 @@ def main():
 
     folders_to_delete: set[Path] = get_folders_to_delete(packets_to_be_sent)
 
-    for folder in folders_to_delete:
-        print(folder)
-
     try:
         if not packets_to_be_sent:
             print("No files found...")
             return
 
         mode = user_select_operation_mode()
-        print(f"{Fore.LIGHTMAGENTA_EX if mode == Mode.DEBUG else Fore.GREEN}{mode.upper()} MODE {Fore.RESET}")
+        global current_mode
+        current_mode = mode
 
-        print_packets(packets_to_be_sent, Packet.OP.PRINT, mode)
+        print(f"{Fore.LIGHTMAGENTA_EX if mode == Mode.DEBUG else Fore.GREEN}{mode.upper()} MODE")
+        print_packets(packets_to_be_sent, mode)
 
-        if user_choice_bool():
+        if user_continues():
             op = determine_op(folders_to_be_made)
             send_packets(packets_to_be_sent, op, mode)
 
+            print_folders_to_delete(folders_to_delete)
+            if user_choose_delete_folders():
+                try:
+                    delete_folders(folders_to_delete, mode)
+                except FolderNotEmpty as e:
+                    print(e)
+
     except KeyboardInterrupt:
-        print(f"\nProgram Exited{Fore.RESET}")
+        print(f"\nProgram Exited")
         return
 
-    print(Fore.RESET)
+    print(Style.RESET)
 
-#TODO delete empty folders left behind
+
+def print_folders_to_delete(folders_to_delete: set[Path]):
+    print(f"{Fore.CYAN}Folders to Delete:")
+    for folder in folders_to_delete:
+        print(f"{Style.INDENT}{Fore.YELLOW}{Style.ARROW} {Style.UNDERLINE}{folder}{Style.RESET}")
+
+    print()
+
+
+def delete_folders(folders_to_delete: set[Path], mode: Mode):
+    print(f"\n{Fore.CYAN}Folders Deleted:")
+    for folder in folders_to_delete:
+        if folder.is_dir() and not any(folder.iterdir()):
+            if mode == Mode.SEND:
+                folder.rmdir()
+            print(f"{Style.TAB_SUCCESS} Folder {Style.UNDERLINE}{folder}{Style.RESET}{Fore.GREEN} Deleted")
+
+        else:
+            raise FolderNotEmpty(folder)
+
+
+def user_continues() -> bool:
+    return user_choice_bool(f"{Fore.CYAN}Send these files? (y/n):{Fore.YELLOW} ")
+
+
+def user_choose_delete_folders() -> bool:
+    return user_choice_bool(f"{Fore.CYAN}Delete leftover folders? (y/n):{Fore.YELLOW} ")
+
+
 def get_folders_to_delete(packets_to_be_sent: list[Packet]):
     folders_to_delete = set()
 
@@ -194,6 +235,7 @@ def get_folders_to_delete(packets_to_be_sent: list[Packet]):
             folders_to_delete.add(packet.src)
 
     return folders_to_delete
+
 
 def determine_op(folders_to_be_made: set) -> Packet.OP:
     if folders_to_be_made:
@@ -208,7 +250,7 @@ def user_wants_folder_creation() -> bool:
     """
 
     while True:
-        choice = input("Create Missing Folders? (y/n): ").strip().lower()
+        choice = input(f"{Fore.CYAN}Create Missing Folders? (y/n):{Fore.YELLOW} ").strip().lower()
 
         if choice == 'y':
             return True
@@ -226,7 +268,8 @@ def user_select_operation_mode(delete_lines: bool = True) -> Mode:
 
     return user_choice_numbered(
         [mode for mode in Mode],
-        "Select Option: ", "Operation Modes:", delete_lines=delete_lines)
+        f"{Fore.CYAN}Select Option:{Fore.YELLOW} ", f"{Fore.CYAN}Operation Modes:",
+        delete_lines=delete_lines)
 
 
 def validate_path(path: Path) -> None:
@@ -261,11 +304,10 @@ def print_packets(
         mode: Mode, recursive_call=False, last_course_code="", last_folder_type=""):
 
     if not recursive_call:
-        mode_str = f"{Fore.LIGHTMAGENTA_EX}(DEBUG){Fore.RESET}" if mode == Mode.DEBUG else ""
-        print(f"\nFiles to be sent {mode_str}:")
+        mode_str = Debug.MESSAGE if mode == Mode.DEBUG else ""
+        print(f"\n{Fore.CYAN}Files to be sent: {mode_str}")
 
     for packet in packet_list:
-
         if packet.src.is_dir() and recursive_call == False:
             sub_packet_list = [
                 Packet(
@@ -277,17 +319,14 @@ def print_packets(
             continue
 
         if packet.course_code != last_course_code:
-            print(f"{Fore.LIGHTCYAN_EX}{packet.course_code}: {packet.course_name}{Fore.RESET}")
             last_course_code = packet.course_code
-            time.sleep(0.05)
+            print_wait(Delay.SHORT, f"{Fore.CYAN}{packet.course_code}: {packet.course_name}")
 
         if packet.folder_type != last_folder_type:
-            print(f"{Fore.BLUE}  {packet.folder_type}{Fore.RESET}")
             last_folder_type = packet.folder_type
-            time.sleep(0.05)
+            print_wait(Delay.SHORT, f"{Fore.LIGHTBLUE_EX}  {packet.folder_type}")
 
-        print(packet)
-        time.sleep(0.05)
+        print_wait(Delay.SHORT, packet)
 
     return last_course_code, last_folder_type
 
@@ -297,9 +336,9 @@ def send_packets(packet_list: list[Packet], op: Packet.OP, mode=Mode.DEBUG, recu
     if not isinstance(op, Packet.OP):
         raise TypeError(f"process_packets: {op} is not a valid OP")
 
-    mode_str = f"{Fore.LIGHTMAGENTA_EX}(DEBUG){Fore.RESET}" if mode == Mode.DEBUG else ""
     if not recursive_call:
-        print(f"\nSending {mode_str}:")
+        mode_str = Debug.MESSAGE if mode == Mode.DEBUG else ""
+        print(f"\n{Fore.CYAN}Sending: {mode_str}")
 
     for packet in packet_list:
 
@@ -313,13 +352,19 @@ def send_packets(packet_list: list[Packet], op: Packet.OP, mode=Mode.DEBUG, recu
             continue
 
         if op == Packet.OP.FULL_SEND and not packet.dst.parent.exists():
+            folder_str = f'{Style.UNDERLINE}\"{packet.dst.parent.parent.parent.name}\\{packet.dst.parent.parent.name}\"'
             if mode == Mode.SEND:
                 packet.dst.parent.mkdir()
-                print(f'{Style.INDENT}{mode_str}{Fore.YELLOW}{ANSI.ARROW} {Style.UNDERLINE}\"{packet.dst.parent.name}\"{Style.RESET}{Fore.YELLOW} Folder Created in {Style.UNDERLINE}\"{packet.dst.parent.parent.parent.name}\\{packet.dst.parent.parent.name}\"{Style.RESET}')
+                print(f'{Style.INDENT}{Fore.YELLOW}{Style.ARROW} \"{underline(packet.dst.parent.name)}\"{Fore.YELLOW} Folder Created in {folder_str}')
             else:
-                print(f'{Style.INDENT}{mode_str}{Fore.YELLOW}{ANSI.ARROW} {Style.UNDERLINE}\"{packet.dst.parent.name}\"{Style.RESET}{Fore.YELLOW} Folder Will Be Created in {Style.UNDERLINE}\"{packet.dst.parent.parent.parent.name}\\{packet.dst.parent.parent.name}\"{Style.RESET}')
+                print(f'{Style.INDENT}{Fore.YELLOW}{Style.ARROW} \"{underline(packet.dst.parent.name)}\"{Fore.YELLOW} Folder Will Be Created in {folder_str}')
 
-        packet.send(mode)
+        try:
+            packet.send(mode)
+        except SourcePathDoesNotExist as src_e:
+            print(src_e)
+        except DestinationPathAlreadyExists as dst_e:
+            print(dst_e)
 
 
 # TODO Remove Class Code from folder when being added (Lab/SYSC 2320 Lab 5 ---> Lab/Lab 5)
@@ -347,7 +392,8 @@ def find_path_within_parent(parent: Path, file: Path, folder: Folders, folders_t
     if folder in [Folders.ASSIGNMENT, Folders.LAB, Folders.LECTURE, Folders.TUTORIAL]:
 
         try:
-            split_stem = file.stem.lower().split()
+            split_stem = file.stem.lower().replace("_", " ").replace("-", " ").split()
+
             index = split_stem.index(folder.lower())
 
             # Ensure there's a file number following the folder keyword (e.g., "Assignment 5")

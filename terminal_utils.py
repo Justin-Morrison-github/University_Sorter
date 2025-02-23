@@ -1,5 +1,4 @@
 
-import re
 import time
 from typing import Iterable
 from colorama import Fore
@@ -9,6 +8,12 @@ from ANSI import ANSI
 import time
 from typing import Iterable, Any
 from enum import StrEnum, auto
+
+class Delay():
+    SHORT = 0.02
+    MEDIUM = 0.15
+    LONG = 0.50
+    XLONG = 1.00
 
 
 def replace_previous_line(string):
@@ -21,15 +26,25 @@ def clear_n_previous_lines(n):
     for _ in range(n):
         sys.stdout.write("\033[F")  # back to previous line
         sys.stdout.write("\033[K")  # clear line
-        time.sleep(0.05)
+        time.sleep(Delay.SHORT)
 
 
-def print_n_lines_back(n: int, string: str):
+def print_n_lines_back(string: str, n: int):
     for _ in range(n):
         sys.stdout.write("\033[F")  # back to previous line
         sys.stdout.write("\033[K")  # clear line
-        time.sleep(0.05)
+        time.sleep(Delay.SHORT)
     print(string)
+
+
+def print_iterable_n_lines_back(iterable: Iterable[str], n: int):
+    for _ in range(n):
+        sys.stdout.write("\033[F")  # back to previous line
+        sys.stdout.write("\033[K")  # clear line
+        time.sleep(Delay.SHORT)
+    for string in iterable:
+        print(string)
+        time.sleep(Delay.SHORT)
 
 
 def prompt_user(prompt: str, exit_char='q') -> str:
@@ -111,3 +126,8 @@ def user_choice_numbered(args: Iterable[Any],
             return args[choice - 1]
         else:
             print("Invalid Input")
+
+
+def print_wait(delay, *args, **kwargs):
+    print(*args, **kwargs)
+    time.sleep(delay)

@@ -5,11 +5,9 @@ import json
 from Settings import Settings
 from typing import Optional
 from terminal_utils import user_choice_bool, user_choice_numbered, Delay, print_wait
-from string_utils import underline
+from string_utils import underline, path_from_substring
 from exceptions import DestinationParentDoesNotExist, PathException, SourcePathDoesNotExist, DestinationPathAlreadyExists, FolderNotEmpty
 from Style import Style
-
-
 
 
 def catch_debug_exceptions(func):
@@ -26,6 +24,7 @@ def catch_debug_exceptions(func):
                 raise e
         return results
     return wrapper
+
 
 class Debug(StrEnum):
     MESSAGE = f"{Fore.LIGHTMAGENTA_EX}(DEBUG)"
@@ -60,13 +59,19 @@ class Folders(StrEnum):
 
 current_mode = Mode.DEBUG
 
+
+class Status(StrEnum):
+    RETRIEVED = auto()
+    SENDING = auto()
+
+
 class Packet():
     class OP(IntEnum):
         SAFE_SEND = 0
         FULL_SEND = 1
 
     def __init__(self, src: Path, dst: Path, course_code: str, course_name: str, folder_type: Folders,
-                 file_number: int = None):
+                 file_number: int = None, status: Status = Status.RETRIEVED):
         self.src = src
         self.dst = dst
         self.course_code = course_code
@@ -74,64 +79,78 @@ class Packet():
         self.course_name = course_name
         self.file_number = file_number
         self.folder_type = folder_type
-
-        for from_folder in [Folders.DOWNLOADS, Folders.UNIVERSITY]:
-            if from_folder in src.parts:
-                self.From = from_folder
-                break
+        self.status = status
 
     def str_dirs_between(self, target: Path):
         num_between = target.parts.index(target.parent.name) - target.parts.index(self.course_name)
-        if num_between == 0:
+        if num_between in [0, 1]:
             return ""
 
-        return f"/{'.' * num_between}/"
+        return f"\\{'.' * (num_between - 1)}\\"
 
-    def format_str(self, str_or_dst: Path) -> str:
-        if self.From == Folders.UNIVERSITY:
-            return f"{self.course_name}{self.str_dirs_between(str_or_dst)}{str_or_dst.parent.name if str_or_dst.parent.name != self.course_name else ''}/{str_or_dst.name}"
-        elif self.src == str_or_dst:
-            return f"{str_or_dst.parent.name if str_or_dst.parent.name != self.course_name else ''}/{str_or_dst.name}"
-        elif self.dst == str_or_dst:
-            return '/'.join(x for x in str_or_dst.parts[str_or_dst.parts.index(self.course_name):])
+    # def format_str(self, src_or_dst: Path) -> str:
+
+    #     if Folders.UNIVERSITY in src_or_dst.parts:
+    #         return path_from_substring(src_or_dst, self.course_name)
+    #         # return f"{self.course_name}{self.str_dirs_between(src_or_dst)}{src_or_dst.parent.name if src_or_dst.parent.name != self.course_name else ''}\\{src_or_dst.name}"
+
+    #     elif Folders.DOWNLOADS in src_or_dst.parts:
+    #         return path_from_substring(src_or_dst, Folders.DOWNLOADS)
 
     def __str__(self):
+        if self.status == Status.RETRIEVED:
+            # src_path = self.format_str(self.src)
+            # dst_path = self.format_str(self.dst)
 
-        src_path = self.format_str(self.src)
-        dst_path = self.format_str(self.dst)
+            src_path = path_from_substring(self.src, Folders.DOWNLOADS)
+            dst_path = path_from_substring(self.dst, self.course_name)
 
-        return (
-            f"{Style.TAB_ARROW} SRC:  {src_path}\n"
-            f"{Style.TAB_ARROW} DST:  {dst_path}\n"
-            + (
-                f"{Style.TAB_WARNING} WARNING (Folder Does Not Exist): {Style.UNDERLINE}{self.dst.parent.name}\n"
-                if not self.dst.parent.exists() else ""
+            return (
+                f"{Style.TAB_ARROW} SRC:  {src_path}\n"
+                f"{Style.TAB_ARROW} DST:  {dst_path}\n"
+                + (
+                    f"{Style.TAB_WARNING} WARNING (Folder Does Not Exist): {Style.UNDERLINE}{self.dst.parent.name}\n"
+                    if not self.dst.parent.exists() else ""
+                )
             )
-        )
+        elif self.status == Status.SENDING:
+            error = False
+            src_str = path_from_substring(self.src, Folders.DOWNLOADS)
+            dst_str = path_from_substring(self.dst, self.course_name)
+
+            src_start = Style.TAB_SUCCESS
+            dst_start = Style.TAB_SUCCESS
+
+            if self.dst.exists() or not self.dst.parent.exists():
+                dst_start = Style.TAB_WARNING
+                error = True
+
+            elif not self.src.exists():
+                src_start = Style.TAB_WARNING
+                error = True
+
+            end_str = '' if error else '\n'  # The error catching will print out the error anyway, don't want uneccessary spacing
+            return (
+                f"{src_start} SRC:  {src_str}\n"
+                f"{dst_start} DST:  {dst_str}"
+                f"{end_str}"
+            )
 
     def __repr__(self):
         return f"(src: {self.src.parent.name}/{self.src.name}, dst: {self.dst.parent.name}/{self.dst.name})"
 
     @catch_debug_exceptions
-    def print_packet_to_send(self):
-        src_str = f"{Style.TAB_SUCCESS} SRC:  {self.src}"
-        dst_str = f"{Style.TAB_SUCCESS} DST:  {self.dst}\n"
+    def check_packet_send(self):
         error = None
 
         if self.dst.exists():
-            dst_str = f"{Style.TAB_WARNING} DST:  {self.dst}"
             error = DestinationPathAlreadyExists(self.dst)
 
         elif not self.dst.parent.exists():
-            dst_str = f"{Style.TAB_WARNING} DST:  {self.dst}"
             error = DestinationParentDoesNotExist(self.dst)
 
         elif not self.src.exists():
-            src_str = f"{Style.TAB_WARNING} SRC:  {self.src}"
             error = SourcePathDoesNotExist(self.src)
-
-        print(src_str)
-        print(dst_str)
 
         if error:
             raise error
@@ -140,9 +159,10 @@ class Packet():
         """
         Try to send a packet from self.src to self.dst. Raises errors as defined by PathExceptions.
         """
-
+        self.status = Status.SENDING
         try:
-            self.print_packet_to_send()
+            print(self)
+            self.check_packet_send()
         except PathException as e:
             raise e
 
@@ -151,7 +171,6 @@ class Packet():
             self.src.rename(self.dst)
 
 
-@catch_debug_exceptions
 def main():
     colorama_init(autoreset=True)
 
@@ -202,7 +221,7 @@ def main():
 def print_folders_to_delete(folders_to_delete: set[Path]):
     print(f"{Fore.CYAN}Folders to Delete:")
     for folder in folders_to_delete:
-        print(f"{Style.INDENT}{Fore.YELLOW}{Style.ARROW} {Style.UNDERLINE}{folder}{Style.RESET}")
+        print(f"{Style.TAB_WARNING} {Style.UNDERLINE}{folder}{Style.RESET}")
 
     print()
 

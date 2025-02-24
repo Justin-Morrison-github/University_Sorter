@@ -1,4 +1,4 @@
-from colorama import Fore
+from colorama import Fore, init
 from Style import Style
 from pathlib import Path
 from string_utils import underline, underline_color, pretty_substring
@@ -57,6 +57,14 @@ class DestinationParentDoesNotExist(PathException):
         return super().__str__()
 
 if __name__ == "__main__":
+    init(autoreset=True)
     path = Path("one/two/three")
     err = DestinationPathAlreadyExists(path)
     print(err)
+    err = FolderNotEmpty(path)
+    print(err)
+    err = SourcePathDoesNotExist(path)
+    print(err)
+    err = DestinationParentDoesNotExist(path)
+    print(err)
+

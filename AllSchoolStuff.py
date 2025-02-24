@@ -6,7 +6,7 @@ from Settings import Settings
 from typing import Optional
 from terminal_utils import user_choice_bool, user_choice_numbered, Delay, print_wait
 from string_utils import underline
-from exceptions import DestinationParentDoesNotExist, PathException, SourcePathDoesNotExist, DestinationPathAlreadyExists, FolderNotEmpty, DEBUG_IGNORE_EXCEPTIONS
+from exceptions import DestinationParentDoesNotExist, PathException, SourcePathDoesNotExist, DestinationPathAlreadyExists, FolderNotEmpty
 from Style import Style
 
 

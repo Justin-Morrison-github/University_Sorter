@@ -1,5 +1,5 @@
 from pathlib import Path
-from move import user_continues
+from terminal_utils import user_continues_with_dst_option
 from colorama import Fore
 import json
 from ANSI import ANSI
@@ -28,7 +28,6 @@ def main():
         flags: dict = json.load(json_file)
 
     files_to_be_sent = traverse_folder(src_folder_path, flags)
-    print(files_to_be_sent)
     if len(files_to_be_sent) == 0:
         print("No files were found")
     else:
@@ -36,7 +35,7 @@ def main():
             print(f'{ANSI.ARROW}  From:   {file["src"]}')
             print(f'{ANSI.ARROW}    To:   {file["dst"]}\n')
 
-        if user_continues():
+        if user_continues_with_dst_option():
             send_files(files_to_be_sent, send_enabled=True)
 
 

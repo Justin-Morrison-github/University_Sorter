@@ -1,4 +1,5 @@
 from colorama import Fore
+from pathlib import Path
 
 UNDERLINE = "\033[4m"
 RESET = "\033[0m"
@@ -31,3 +32,9 @@ def underline_color(string:str, color = Fore.YELLOW):
 
 def prepend(string:str, start:str):
     return start + string
+
+
+def path_from_substring(path: Path, target: str) -> Path:
+    if target in path.parts:
+        return Path(*path.parts[path.parts.index(target):])
+    raise ValueError(f"'{target}' not found in path: {path}")

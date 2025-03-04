@@ -40,6 +40,7 @@ class Mode(StrEnum):
     DEBUG = auto()
     SEND = auto()
 
+current_mode = Mode.DEBUG
 
 class Folders(StrEnum):
     ASSIGNMENT = "Assignment"
@@ -57,7 +58,6 @@ class Folders(StrEnum):
     UNIVERSITY = "University"
 
 
-current_mode = Mode.DEBUG
 
 
 class Status(StrEnum):
@@ -125,7 +125,7 @@ class Packet():
                 dst_start = Style.TAB_WARNING
                 error = True
 
-            elif not self.src.exists():
+            if not self.src.exists():
                 src_start = Style.TAB_WARNING
                 error = True
 
@@ -175,16 +175,16 @@ def main():
     colorama_init(autoreset=True)
 
     file = Path(__file__).stem
-    settings = Settings("JSON/settings.json", file)
+    settings = Settings("json/settings.json", file)
 
     with open(settings.json_file, 'r') as json_file:
         course_data: dict = json.load(json_file)
 
-    class_paths = create_class_paths(course_data, settings.basepath)
+    class_paths = create_class_paths(course_data, settings.dst_path)
 
     folders_to_be_made: set[Path] = set()
 
-    packets_to_be_sent = traverse_folder_packet(settings.src_path, class_paths, course_data, folders_to_be_made)
+    packets_to_be_sent = get_packets(settings.src_path, class_paths, course_data, folders_to_be_made)
 
     folders_to_delete: set[Path] = get_folders_to_delete(packets_to_be_sent)
 
@@ -436,7 +436,7 @@ def find_path_within_parent(parent: Path, file: Path, folder: Folders, folders_t
     return matching_folder_path / file.name
 
 
-def traverse_folder_packet(
+def get_packets(
         src_folder_path: Path, class_paths: dict, course_data: dict, folders_to_be_made: list[Path]) -> list[Packet]:
     files_to_be_sent = []
 
@@ -460,7 +460,7 @@ def traverse_folder_packet(
             files_to_be_sent.append(packet)
 
         elif file.is_dir():
-            files_to_be_sent += traverse_folder_packet(file, class_paths, course_data, folders_to_be_made)
+            files_to_be_sent += get_packets(file, class_paths, course_data, folders_to_be_made)
 
     return files_to_be_sent
 

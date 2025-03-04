@@ -1,0 +1,17 @@
+{
+    "UniversalSorter": {
+        "json_file": "json/flags.json",
+        "basepath": "C:/Users/morri/Onedrive/University",
+        "src_path": "C:/Users/morri/Downloads"
+    },   
+    "AllSchoolStuff": {
+        "json_file": "json/courses.json",
+        "dst_path": "C:/Users/morri/Onedrive/University",
+        "src_path": "C:/Users/morri/Downloads"
+    },
+    "university": {
+        "json_file": "json/courses.json",
+        "dst_path": "C:/Users/morri/Onedrive/University",
+        "src_path": "C:/Users/morri/Downloads"
+    }
+}

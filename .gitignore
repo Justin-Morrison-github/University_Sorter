@@ -1,5 +1,5 @@
 Unnecessary/
-Sorting Files/
+bat-files/
 *.pyc
 tempCodeRunnerFile
 course_grades.json
@@ -7,3 +7,5 @@ courses.json
 JSON/courses.json
 courses
 *venv
+.pytest_cache
+__pycache__

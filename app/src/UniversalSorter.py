@@ -8,7 +8,7 @@ from Settings import Settings
 
 def main():
     file = Path(__file__).stem
-    settings_file = "JSON/settings.json"
+    settings_file = "json/settings.json"
     if not Path(settings_file).exists():
         raise FileNotFoundError(settings_file)
 

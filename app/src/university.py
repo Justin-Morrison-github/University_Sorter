@@ -191,7 +191,7 @@ class Packet():
 class SchoolSorter():
     def __init__(self, ):
         self._start_file: Path = Path(__file__).stem
-        self.settings: Settings = Settings("json/settings.json", self._start_file)
+        self.settings: Settings = Settings("app/json/settings.json", self._start_file)
 
         with open(self.settings.json_file, 'r') as json_file:
             self.university_data: dict[str, dict[str,dict]] = json.load(json_file)

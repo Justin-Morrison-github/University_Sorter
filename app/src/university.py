@@ -82,13 +82,13 @@ class Packet():
         self.status = status
         self.error = None
 
-    def str_dirs_between(self, target: Path):
-        num_between = target.parts.index(target.parent.name) - target.parts.index(self.course_name)
-        if num_between in [0, 1]:
-            return ""
+    # def str_dirs_between(self, target: Path):
+    #     num_between = target.parts.index(target.parent.name) - target.parts.index(self.course_name)
+    #     if num_between in [0, 1]:
+    #         return ""
 
-        return f"\\{'.' * (num_between - 1)}\\"
-
+    #     return f"\\{'.' * (num_between - 1)}\\"
+    
     # TODO: Make better
     def __str__(self):
         if self.status == Status.RETRIEVED:
@@ -189,7 +189,7 @@ class Packet():
 
 
 class SchoolSorter():
-    def __init__(self, ):
+    def __init__(self):
         self._start_file: Path = Path(__file__).stem
         self.settings: Settings = Settings("app/json/settings.json", self._start_file)
 

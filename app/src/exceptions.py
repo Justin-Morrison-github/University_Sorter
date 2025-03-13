@@ -13,7 +13,7 @@ class PathException(Exception):
         super().__init__(self.msg)
 
     def __str__(self):
-        return f"{Style.TAB_WARNING}({self.type}): {self.msg}"
+        return f"{Style.TAB_WARNING} ({self.type}): {self.msg}"
 
 
 class FolderNotEmpty(PathException):

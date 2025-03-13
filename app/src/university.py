@@ -66,10 +66,6 @@ class Status(StrEnum):
 
 
 class Packet():
-    class OP(IntEnum):
-        SAFE_SEND = 0
-        FULL_SEND = 1
-
     def __init__(self, src: Path, dst: Path, course_code: str, course_name: str, folder_type: Folder,
                  file_number: int = None, status: Status = Status.RETRIEVED):
         self.src:Path = src
@@ -179,12 +175,18 @@ class Packet():
             print(self)
             if self.error:
                 raise self.error
+        except DestinationParentDoesNotExist as e:
+            if mode == Mode.SEND_MKDIR:
+                pass
+            else:
+                raise e
+
         except PathException as e:
             # print(e)
             raise e
 
         # If reached here no exceptions were raised
-        if mode == Mode.SEND:
+        if mode in [Mode.SEND, Mode.SEND_MKDIR]:
             self.src.rename(self.dst)
 
 
@@ -200,9 +202,7 @@ class SchoolSorter():
         self.folders_to_be_made: set[Path] = set()
         self.packets_to_be_sent: list[Packet] = self.get_packets(self.settings.src_path)
         self.folders_to_delete: set[Path] = self.get_folders_to_delete()
-        # self.mode: Mode = self.user_select_operation_mode()
         self.mode: Mode = Mode.DEBUG
-        self.op = Packet.OP.SAFE_SEND
 
     def main(self):
         colorama_init(autoreset=True)
@@ -212,11 +212,12 @@ class SchoolSorter():
                 print("No files found...")
                 return
 
+            self.mode: Mode = self.user_select_operation_mode()
+
             print(f"{Fore.LIGHTMAGENTA_EX if self.mode == Mode.DEBUG else Fore.GREEN}{self.mode.upper()} MODE")
             self.print_packets()
 
             if self.user_continues():
-                self.op = self.determine_op()
                 self.send_packets()
 
                 self.print_folders_to_delete()
@@ -229,7 +230,6 @@ class SchoolSorter():
         except KeyboardInterrupt:
             print(f"\nProgram Exited")
             return
-
 
     def get_folders_to_delete(self) -> set[Path]:
         folders_to_delete: set[Path] = set()
@@ -263,27 +263,6 @@ class SchoolSorter():
 
     def user_choose_delete_folders(self) -> bool:
         return user_choice_bool(f"{Fore.CYAN}Delete leftover folders? (y/n):{Fore.YELLOW} ")
-
-    def determine_op(self) -> Packet.OP:
-        if self.folders_to_be_made:
-            return Packet.OP.FULL_SEND if self.user_wants_folder_creation() else Packet.OP.SAFE_SEND
-        return Packet.OP.FULL_SEND
-
-    def user_wants_folder_creation(self) -> bool:
-        """
-        Prompts the user if they want to create folders that don't exist (if any)
-        in order to send the files.
-        """
-
-        while True:
-            choice = input(f"{Fore.CYAN}Create Missing Folder? (y/n):{Fore.YELLOW} ").strip().lower()
-
-            if choice == 'y':
-                return True
-            elif choice == 'n':
-                return False
-            else:
-                print("Invalid Input")
 
     def user_select_operation_mode(self, delete_lines: bool = True) -> Mode:
         """
@@ -360,8 +339,8 @@ class SchoolSorter():
 
 
     def print_packets(self):
-        if not isinstance(self.op, Packet.OP):
-            raise TypeError(f"process_packets: {self.op} is not a valid OP")
+        if not isinstance(self.mode, Mode):
+            raise TypeError(f"process_packets: {self.mode} is not a valid Mode")
 
         mode_str = Debug.MESSAGE if self.mode == Mode.DEBUG else ""
         print(f"\n{Fore.CYAN}Files to be sent: {mode_str}")
@@ -396,8 +375,8 @@ class SchoolSorter():
             print_wait(Delay.SHORT, packet)
 
     def send_packets(self):
-        if not isinstance(self.op, Packet.OP):
-            raise TypeError(f"process_packets: {self.op} is not a valid OP")
+        if not isinstance(self.mode, Mode):
+            raise TypeError(f"send_packets: {self.mode} is not a valid Mode")
 
         mode_str = Debug.MESSAGE if self.mode == Mode.DEBUG else ""
         print(f"\n{Fore.CYAN}Sending: {mode_str}")
@@ -418,20 +397,23 @@ class SchoolSorter():
                 stack.extend(sub_packet_list)  # Add the sub-packets to the stack
                 continue
 
-            if self.op == Packet.OP.FULL_SEND and not packet.dst.parent.exists():
-                folder_str = f'{Style.UNDERLINE}\"{packet.dst.parent.parent.parent.name}\\{packet.dst.parent.parent.name}\"'
-                if self.mode == Mode.SEND:
-                    packet.dst.parent.mkdir()
-                    print(
-                        f'{Style.INDENT}{Fore.YELLOW}{Style.ARROW} \"{underline(packet.dst.parent.name)}\"{Fore.YELLOW} Folder Created in {folder_str}')
-                else:
-                    print(
-                        f'{Style.INDENT}{Fore.YELLOW}{Style.ARROW} \"{underline(packet.dst.parent.name)}\"{Fore.YELLOW} Folder Will Be Created in {folder_str}')
+            folder_str = f'{Style.UNDERLINE}\"{packet.dst.parent.parent.parent.name}\\{packet.dst.parent.parent.name}\"'
+            if self.mode == Mode.SEND_MKDIR and not packet.dst.parent.exists():
 
+                if self.mode == Mode.SEND_MKDIR:
+                    packet.dst.parent.mkdir()
+                    print(f'{Style.TAB_WARNING} \"{underline(packet.dst.parent.name)}\"{Fore.YELLOW} Folder Created in {folder_str}')
             try:
                 packet.send(self.mode)
-                if packet.src.parent != self.settings.src_path:
-                    packet.pretty_print(packet.src.parent)
+                # if packet.src.parent != self.settings.src_path:
+                #     packet.pretty_print(packet.src.parent)
+            except DestinationParentDoesNotExist as e:
+                if self.mode == Mode.SEND:
+                    print(
+                        f'{Style.TAB_WARNING} Enable SEND_MKDIR Mode to create missing folder \"{underline(packet.dst.parent.name)}\"{Fore.YELLOW} in {folder_str}\n')
+                elif self.mode == Mode.DEBUG:
+                    print()
+
             except PathException as e:
                 pass
 

@@ -10,6 +10,7 @@ from exceptions import DestinationParentDoesNotExist, PathException, SourcePathD
 from Style import Style
 import copy
 
+
 def catch_debug_exceptions(func):
     def wrapper(*args, **kwargs):
         try:
@@ -39,6 +40,7 @@ class Color(StrEnum):
 class Mode(StrEnum):
     DEBUG = auto()
     SEND = auto()
+    SEND_MKDIR = auto()
 
 
 current_mode = Mode.DEBUG
@@ -68,23 +70,16 @@ class Status(StrEnum):
 class Packet():
     def __init__(self, src: Path, dst: Path, course_code: str, course_name: str, folder_type: Folder,
                  file_number: int = None, status: Status = Status.RETRIEVED):
-        self.src:Path = src
-        self.dst:Path = dst
-        self.course_code:str = course_code
-        self.file_name:str = self.src.stem
-        self.course_name:str = course_name
-        self.file_number:int = file_number
-        self.folder_type:Folder = folder_type
+        self.src: Path = src
+        self.dst: Path = dst
+        self.course_code: str = course_code
+        self.file_name: str = self.src.stem
+        self.course_name: str = course_name
+        self.file_number: int = file_number
+        self.folder_type: Folder = folder_type
         self.status = status
         self.error = None
 
-    # def str_dirs_between(self, target: Path):
-    #     num_between = target.parts.index(target.parent.name) - target.parts.index(self.course_name)
-    #     if num_between in [0, 1]:
-    #         return ""
-
-    #     return f"\\{'.' * (num_between - 1)}\\"
-    
     # TODO: Make better
     def __str__(self):
         if self.status == Status.RETRIEVED:
@@ -113,15 +108,15 @@ class Packet():
             if not self.src.exists():
                 src_start = Style.TAB_WARNING
 
-            end_str = '' if not self.error else f"{self.error}\n" 
+            end_str = '' if not self.error else f"{self.error}"
             return (
                 f"{src_start} SRC:  {src_str}\n"
                 f"{dst_start} DST:  {dst_str}\n"
                 f"{end_str}"
             )
-        
-    def print_hierarchy(self,
-            src_folder_path: str, depth=0, arrow_color=Fore.WHITE, count_color=Fore.WHITE, file_color=Fore.CYAN,
+
+    def print_hierarchy(
+            self, src_folder_path: str, depth=0, arrow_color=Fore.WHITE, count_color=Fore.WHITE, file_color=Fore.CYAN,
             size_color=Fore.GREEN):
         depth += 1
         count = 0
@@ -142,7 +137,7 @@ class Packet():
 
             if path.is_dir():
                 self.print_hierarchy(path, depth, arrow_color, count_color, file_color,
-                                size_color)
+                                     size_color)
 
     def pretty_print(self, parent):
         self.print_hierarchy(parent)
@@ -196,7 +191,7 @@ class SchoolSorter():
         self.settings: Settings = Settings("app/json/settings.json", self._start_file)
 
         with open(self.settings.json_file, 'r') as json_file:
-            self.university_data: dict[str, dict[str,dict]] = json.load(json_file)
+            self.university_data: dict[str, dict[str, dict]] = json.load(json_file)
 
         self.class_paths: dict[str, Path] = self.create_class_paths()
         self.folders_to_be_made: set[Path] = set()
@@ -299,7 +294,6 @@ class SchoolSorter():
 
         return class_paths
 
-
     def get_packets(self, src_folder_path: Path = None) -> list[Packet]:
         if src_folder_path is None:
             src_folder_path = self.settings.src_path
@@ -336,7 +330,6 @@ class SchoolSorter():
                     stack.append(file)
 
         return files_to_be_sent
-
 
     def print_packets(self):
         if not isinstance(self.mode, Mode):

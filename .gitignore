@@ -10,3 +10,4 @@ courses
 .pytest_cache
 __pycache__
 .vscode/
+tests/

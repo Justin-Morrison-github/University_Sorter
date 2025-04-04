@@ -1,3 +1,8 @@
+import os, sys
+
+curr_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(curr_dir)
+
 from pathlib import Path
 from enum import IntEnum, StrEnum, auto
 from colorama import Fore, init as colorama_init
